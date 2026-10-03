@@ -1,94 +1,66 @@
-// 1. Configuración de Supabase
-const supabaseUrl = 'https://sirytqfdlbgkcuvkquiq.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcnl0cWZkbGJna2N1dmtxdWlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NjQwOTMsImV4cCI6MjEwNjU0MDA5M30.rv2TLpBL8_qMq_qlENS031H0neDbDJ_iQr48ohcUp-g';
+// src/js/auth.js
 
-// Renombrado a supabaseClient para evitar el SyntaxError
-const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+// Elementos del DOM
+const loginModal = document.getElementById('login-modal');
+const loginCard = document.getElementById('login-card');
+const loginBtn = document.getElementById('login-btn');
+const loginError = document.getElementById('login-error');
 
-// 2. Lógica de Login
-const loginForm = document.getElementById('loginForm');
-if (loginForm) {
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        const loginBtn = document.getElementById('loginBtn');
+// Abrir Modal
+window.openLoginModal = function() {
+    if(loginModal && loginCard) {
+        loginModal.classList.remove('opacity-0', 'pointer-events-none');
+        loginCard.classList.remove('scale-95');
+        loginCard.classList.add('scale-100');
+        if(loginError) loginError.classList.add('hidden'); // Resetear error
+    }
+};
+
+// Cerrar Modal
+window.closeLoginModal = function() {
+    if(loginModal && loginCard) {
+        loginModal.classList.add('opacity-0', 'pointer-events-none');
+        loginCard.classList.remove('scale-100');
+        loginCard.classList.add('scale-95');
+    }
+};
+
+// Cerrar modal con la tecla Escape
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && loginModal && !loginModal.classList.contains('opacity-0')) {
+        closeLoginModal();
+    }
+});
+
+// Manejar el envío del formulario
+window.handleLogin = function(e) {
+    e.preventDefault();
+    
+    if(!loginBtn) return;
+    
+    // Estado de carga del botón
+    const originalBtnText = loginBtn.innerHTML;
+    loginBtn.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> Verificando...';
+    loginBtn.disabled = true;
+
+    // Simular llamada a la API
+    setTimeout(() => {
+        closeLoginModal();
         
-        const originalText = loginBtn.innerText;
-        loginBtn.innerText = 'Verificando credenciales...';
-        loginBtn.disabled = true;
-
-        try {
-            // Iniciar sesión en auth usando supabaseClient
-            const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (authError) throw authError;
-
-            // Verificar si el perfil está aprobado en la base de datos
-            const { data: profile, error: profileError } = await supabaseClient
-                .from('profiles')
-                .select('is_approved, role')
-                .eq('id', authData.user.id)
-                .single();
-
-            if (profileError) throw profileError;
-
-            if (profile.is_approved === true) {
-                // Aprobado: Entrar al sistema
-                window.location.href = 'dashboard.html';
-            } else {
-                // Bloqueado: Cerrar sesión inmediatamente y avisar
-                await supabaseClient.auth.signOut();
-                alert("ACCESO DENEGADO: Tu cuenta está en revisión. Espera la aprobación del Administrador de Nexus.");
-            }
-        } catch (error) {
-            alert('Error: ' + error.message);
-        } finally {
-            loginBtn.innerText = originalText;
+        // Redirigir a la vista modular del Dashboard
+        window.location.href = 'src/views/dashboard.html';
+        
+        // Restaurar el botón en caso de que el usuario presione "Atrás" en el navegador
+        setTimeout(() => {
+            loginBtn.innerHTML = originalBtnText;
             loginBtn.disabled = false;
-        }
-    });
-}
+        }, 500);
 
-// 3. Lógica de Registro (Solicitar Acceso)
-const registerForm = document.getElementById('registerForm');
-if (registerForm) {
-    registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('regEmail').value;
-        const password = document.getElementById('regPassword').value;
-        const fullName = document.getElementById('regName').value;
-        const profession = document.getElementById('regProfession').value;
-        const regBtn = document.getElementById('regBtn');
-        
-        const originalText = regBtn.innerText;
-        regBtn.innerText = 'Generando Solicitud...';
-        regBtn.disabled = true;
+    }, 1200);
+};
 
-        try {
-            // Registro usando supabaseClient
-            const { data, error } = await supabaseClient.auth.signUp({
-                email: email,
-                password: password,
-                options: {
-                    data: {
-                        full_name: fullName,
-                        profession: profession
-                    }
-                }
-            });
-            
-            if (error) throw error;
-            
-            alert("SOLICITUD ENVIADA EXITOSAMENTE. El administrador debe aprobar tu acceso para que puedas iniciar sesión.");
-            // Cambiar a la pestaña de login visualmente
-            switchTab('login');
-            registerForm.reset();
-            
-        } catch (error) {
-            alert('Error en el registro: ' + error.message);
-        } finally {
-            regBtn.innerText = originalText;
-            regBtn.disabled = false;
-        }
-    });
-}
+// Lógica de Logout (Esta función será llamada desde dashboard.html)
+window.logout = function() {
+    // Como el dashboard está en src/views/, subimos dos niveles para volver al index
+    window.location.href = '../../index.html';
+};
