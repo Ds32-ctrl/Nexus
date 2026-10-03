@@ -11,6 +11,7 @@
     <nav class="navbar">
         <div class="nav-brand">NEXUS <span class="status-dot pulse" style="margin-left: 8px;"></span></div>
         <div class="nav-actions">
+            <span id="roleBadge" class="brand-badge" style="display: none; margin-bottom: 0; margin-right: 15px; border-color: var(--primary-color); color: var(--primary-color);">ADMINISTRADOR</span>
             <button class="btn-icon" id="logoutBtn" aria-label="Cerrar sesión">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
             </button>
@@ -19,14 +20,29 @@
 
     <main class="dashboard-container fade-in">
         
-        <!-- PANEL DE ADMINISTRADOR (Oculto por defecto, se activa en JS) -->
-        <section id="adminPanel" style="display: none; background: rgba(88, 166, 255, 0.05); border: 1px dashed var(--primary-color); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
-            <h2 style="color: var(--primary-color); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                Comandancia: Solicitudes de Acceso
-            </h2>
-            <div id="pendingRequestsList">
-                Cargando...
+        <!-- PANEL DE ADMINISTRADOR (Comandancia) -->
+        <section id="adminPanel" class="admin-panel" style="display: none;">
+            <div class="admin-header">
+                <h2>Comandancia Nexus</h2>
+                <p class="subtitle" style="margin-bottom: 0;">Gestión de accesos y operadores de la red.</p>
+            </div>
+            
+            <div class="admin-grid">
+                <!-- Solicitudes Pendientes -->
+                <div class="admin-card">
+                    <h3 style="color: #f59e0b; margin-bottom: 1rem;">Solicitudes Pendientes</h3>
+                    <div id="pendingList" class="user-list">
+                        <p class="text-muted">Cargando datos seguros...</p>
+                    </div>
+                </div>
+                
+                <!-- Operadores Activos -->
+                <div class="admin-card">
+                    <h3 style="color: var(--accent); margin-bottom: 1rem;">Operadores Activos</h3>
+                    <div id="activeList" class="user-list">
+                        <p class="text-muted">Cargando datos seguros...</p>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -38,35 +54,29 @@
             </div>
             <div class="metrics">
                 <div class="metric-card">
-                    <span class="metric-value">4h</span>
+                    <span class="metric-value" id="userDeepWork">0h</span>
                     <span class="metric-label">Deep Work Hoy</span>
                 </div>
             </div>
         </header>
 
+        <!-- Bloques de Tiempo (Tu Horario) -->
         <section class="schedule-grid">
-            <!-- Bloque de Trabajo Operativo -->
             <div class="task-card border-work">
                 <div class="task-time">01:00 - 07:00</div>
                 <h3 class="task-title">Operaciones T1</h3>
                 <p class="task-desc">Trabajo operativo. Auditoría de procesos y soporte técnico avanzado.</p>
             </div>
-
-            <!-- Bloque de Universidad -->
             <div class="task-card border-study">
                 <div class="task-time">15:00 - 17:00</div>
                 <h3 class="task-title">Academia & Sistemas</h3>
                 <p class="task-desc">Estudio enfocado. Sistemas Operativos y Bases de Datos.</p>
             </div>
-
-            <!-- El Nuevo Bloque de Hierro -->
             <div class="task-card border-deep">
                 <div class="task-time">20:00 - 21:30</div>
                 <h3 class="task-title">Dominación Técnica</h3>
                 <p class="task-desc">Práctica deliberada. AWS, FastAPI, arquitecturas limpias. Cero distracciones.</p>
             </div>
-
-            <!-- Bloque de Desconexión Genuina -->
             <div class="task-card border-rest">
                 <div class="task-time">21:30 - 22:30</div>
                 <h3 class="task-title">Desconexión Genuina</h3>

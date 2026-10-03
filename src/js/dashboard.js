@@ -1,93 +1,114 @@
+// 1. Configuración de Supabase
 const supabaseUrl = 'https://sirytqfdlbgkcuvkquiq.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcnl0cWZkbGJna2N1dmtxdWlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NjQwOTMsImV4cCI6MjEwNjU0MDA5M30.rv2TLpBL8_qMq_qlENS031H0neDbDJ_iQr48ohcUp-g';
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-document.addEventListener('DOMContentLoaded', initDashboard);
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-async function initDashboard() {
-    // Verificar sesión
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+// 2. Inicialización del Dashboard
+document.addEventListener('DOMContentLoaded', async () => {
+    // Verificar si hay sesión activa
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    
+    if (authError || !user) {
         window.location.href = 'login.html';
         return;
     }
 
-    // Obtener datos del perfil
-    const { data: profile, error } = await supabase
+    // Obtener datos del perfil del usuario logueado
+    const { data: profile, error: profileError } = await supabaseClient
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
 
-    if (error || !profile) {
-        console.error(error);
+    if (profileError || !profile) {
+        console.error("Error cargando perfil:", profileError);
+        document.getElementById('userProfession').innerText = "Error cargando perfil. Contacte al administrador.";
         return;
     }
 
-    // Llenar datos en el HTML
-    document.getElementById('userName').innerText = profile.full_name.split(' ')[0]; // Primer nombre
+    // Llenar interfaz principal
+    document.getElementById('userName').innerText = profile.full_name.split(' ')[0]; // Extrae solo el primer nombre
     document.getElementById('userProfession').innerText = profile.profession || 'Operador Nexus';
 
-    // Si es Administrador, mostrar panel de control y cargar solicitudes
+    // 3. Lógica de Administrador
     if (profile.role === 'admin') {
         document.getElementById('adminPanel').style.display = 'block';
-        loadPendingRequests();
+        document.getElementById('roleBadge').style.display = 'inline-block';
+        loadAdminData();
     }
-}
+});
 
-// Función exclusiva para el Administrador
-async function loadPendingRequests() {
-    const { data: pendingUsers, error } = await supabase
+// Función para cargar los usuarios en el panel de Comandancia
+async function loadAdminData() {
+    const pendingList = document.getElementById('pendingList');
+    const activeList = document.getElementById('activeList');
+
+    const { data: allUsers, error } = await supabaseClient
         .from('profiles')
         .select('*')
-        .eq('is_approved', false);
+        .order('created_at', { ascending: false });
 
-    const listContainer = document.getElementById('pendingRequestsList');
-    
     if (error) {
-        listContainer.innerHTML = '<p>Error al cargar solicitudes.</p>';
+        console.error(error);
+        pendingList.innerHTML = '<p class="text-muted">Error al conectar con la base de datos.</p>';
         return;
     }
 
+    // Filtrar usuarios
+    const pendingUsers = allUsers.filter(u => u.is_approved === false);
+    const activeUsers = allUsers.filter(u => u.is_approved === true && u.role !== 'admin'); // No mostrarte a ti mismo en la lista
+
+    // Renderizar Pendientes
     if (pendingUsers.length === 0) {
-        listContainer.innerHTML = '<p style="color: var(--text-muted);">No hay solicitudes pendientes.</p>';
-        return;
+        pendingList.innerHTML = '<p class="text-muted">No hay solicitudes pendientes.</p>';
+    } else {
+        pendingList.innerHTML = pendingUsers.map(u => `
+            <div class="user-item">
+                <div class="user-info">
+                    <h4>${u.full_name}</h4>
+                    <span>${u.profession}</span>
+                </div>
+                <button class="admin-btn btn-approve" onclick="toggleUserStatus('${u.id}', true)">Aprobar</button>
+            </div>
+        `).join('');
     }
 
-    let html = '';
-    pendingUsers.forEach(u => {
-        html += `
-            <div style="background: var(--bg-color); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color);">
-                <div>
-                    <h4 style="margin: 0; color: var(--primary-color);">${u.full_name}</h4>
-                    <span style="font-size: 0.85rem; color: var(--text-muted);">${u.profession}</span>
+    // Renderizar Activos
+    if (activeUsers.length === 0) {
+        activeList.innerHTML = '<p class="text-muted">No hay operadores activos en la red.</p>';
+    } else {
+        activeList.innerHTML = activeUsers.map(u => `
+            <div class="user-item">
+                <div class="user-info">
+                    <h4>${u.full_name}</h4>
+                    <span>${u.profession}</span>
                 </div>
-                <button onclick="approveUser('${u.id}')" class="btn btn-outline" style="width: auto; padding: 0.5rem 1rem; border-color: var(--accent); color: var(--accent);">
-                    Aprobar Acceso
-                </button>
+                <button class="admin-btn btn-revoke" onclick="toggleUserStatus('${u.id}', false)">Revocar</button>
             </div>
-        `;
-    });
-    listContainer.innerHTML = html;
+        `).join('');
+    }
 }
 
-// Aprobar usuario (Global para que el HTML pueda llamarla)
-window.approveUser = async function(userId) {
-    const { error } = await supabase
+// Función global para Aprobar/Revocar accesos desde el HTML
+window.toggleUserStatus = async function(userId, status) {
+    // Actualizamos el estado en la base de datos
+    const { error } = await supabaseClient
         .from('profiles')
-        .update({ is_approved: true })
+        .update({ is_approved: status })
         .eq('id', userId);
 
     if (error) {
-        alert('Error al aprobar: ' + error.message);
+        alert('Error en la operación: ' + error.message);
     } else {
-        alert('Usuario aprobado con éxito.');
-        loadPendingRequests(); // Recargar la lista
+        const actionStr = status ? "aprobado" : "revocado";
+        alert(`Acceso ${actionStr} con éxito.`);
+        loadAdminData(); // Recargar las listas visuales
     }
 }
 
-// Logout
+// 4. Lógica de Cerrar Sesión
 document.getElementById('logoutBtn').addEventListener('click', async () => {
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
     window.location.href = 'login.html';
 });
