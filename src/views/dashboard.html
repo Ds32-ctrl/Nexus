@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus | Panel de Control</title>
+    <title>Nexus | Entorno de Ejecución</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/dashboard.css">
 </head>
@@ -11,7 +11,6 @@
     <nav class="navbar">
         <div class="nav-brand">NEXUS <span class="status-dot pulse" style="margin-left: 8px;"></span></div>
         <div class="nav-actions">
-            <span id="roleBadge" class="brand-badge" style="display: none; margin-bottom: 0; margin-right: 15px; border-color: var(--primary-color); color: var(--primary-color);">ADMINISTRADOR</span>
             <button class="btn-icon" id="logoutBtn" aria-label="Cerrar sesión">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
             </button>
@@ -19,38 +18,10 @@
     </nav>
 
     <main class="dashboard-container fade-in">
-        
-        <!-- PANEL DE ADMINISTRADOR (Comandancia) -->
-        <section id="adminPanel" class="admin-panel" style="display: none;">
-            <div class="admin-header">
-                <h2>Comandancia Nexus</h2>
-                <p class="subtitle" style="margin-bottom: 0;">Gestión de accesos y operadores de la red.</p>
-            </div>
-            
-            <div class="admin-grid">
-                <!-- Solicitudes Pendientes -->
-                <div class="admin-card">
-                    <h3 style="color: #f59e0b; margin-bottom: 1rem;">Solicitudes Pendientes</h3>
-                    <div id="pendingList" class="user-list">
-                        <p class="text-muted">Cargando datos seguros...</p>
-                    </div>
-                </div>
-                
-                <!-- Operadores Activos -->
-                <div class="admin-card">
-                    <h3 style="color: var(--accent); margin-bottom: 1rem;">Operadores Activos</h3>
-                    <div id="activeList" class="user-list">
-                        <p class="text-muted">Cargando datos seguros...</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Cabecera Personalizada -->
         <header class="dashboard-header">
             <div>
                 <h1>Bienvenido, <span class="gradient-text" id="userName">Operador</span></h1>
-                <p class="subtitle" style="margin-bottom: 0;" id="userProfession">Cargando perfil...</p>
+                <p class="subtitle" style="margin-bottom: 0;" id="userProfession">Sincronizando perfil...</p>
             </div>
             <div class="metrics">
                 <div class="metric-card">
@@ -60,7 +31,11 @@
             </div>
         </header>
 
-        <!-- Bloques de Tiempo (Tu Horario) -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.2rem; color: var(--text-main);">Protocolo del Día</h2>
+            <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">+ Nuevo Bloque</button>
+        </div>
+
         <section class="schedule-grid">
             <div class="task-card border-work">
                 <div class="task-time">01:00 - 07:00</div>
