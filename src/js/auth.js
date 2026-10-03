@@ -2,7 +2,8 @@
 const supabaseUrl = 'https://sirytqfdlbgkcuvkquiq.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcnl0cWZkbGJna2N1dmtxdWlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NjQwOTMsImV4cCI6MjEwNjU0MDA5M30.rv2TLpBL8_qMq_qlENS031H0neDbDJ_iQr48ohcUp-g';
 
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+// Renombrado a supabaseClient para evitar el SyntaxError
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 // 2. Lógica de Login
 const loginForm = document.getElementById('loginForm');
@@ -18,12 +19,12 @@ if (loginForm) {
         loginBtn.disabled = true;
 
         try {
-            // Iniciar sesión en auth
-            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+            // Iniciar sesión en auth usando supabaseClient
+            const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({ email, password });
             if (authError) throw authError;
 
             // Verificar si el perfil está aprobado en la base de datos
-            const { data: profile, error: profileError } = await supabase
+            const { data: profile, error: profileError } = await supabaseClient
                 .from('profiles')
                 .select('is_approved, role')
                 .eq('id', authData.user.id)
@@ -36,7 +37,7 @@ if (loginForm) {
                 window.location.href = 'dashboard.html';
             } else {
                 // Bloqueado: Cerrar sesión inmediatamente y avisar
-                await supabase.auth.signOut();
+                await supabaseClient.auth.signOut();
                 alert("ACCESO DENEGADO: Tu cuenta está en revisión. Espera la aprobación del Administrador de Nexus.");
             }
         } catch (error) {
@@ -64,7 +65,8 @@ if (registerForm) {
         regBtn.disabled = true;
 
         try {
-            const { data, error } = await supabase.auth.signUp({
+            // Registro usando supabaseClient
+            const { data, error } = await supabaseClient.auth.signUp({
                 email: email,
                 password: password,
                 options: {
