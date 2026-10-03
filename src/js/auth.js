@@ -1,66 +1,119 @@
 // src/js/auth.js
 
-// Elementos del DOM
-const loginModal = document.getElementById('login-modal');
-const loginCard = document.getElementById('login-card');
-const loginBtn = document.getElementById('login-btn');
-const loginError = document.getElementById('login-error');
+// 1. Inicializar Supabase (Asegúrate de poner tus credenciales reales aquí)
+const supabaseUrl = 'TU_SUPABASE_URL';
+const supabaseKey = 'TU_SUPABASE_ANON_KEY';
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// Abrir Modal
-window.openLoginModal = function() {
-    if(loginModal && loginCard) {
-        loginModal.classList.remove('opacity-0', 'pointer-events-none');
-        loginCard.classList.remove('scale-95');
-        loginCard.classList.add('scale-100');
-        if(loginError) loginError.classList.add('hidden'); // Resetear error
-    }
-};
-
-// Cerrar Modal
-window.closeLoginModal = function() {
-    if(loginModal && loginCard) {
-        loginModal.classList.add('opacity-0', 'pointer-events-none');
-        loginCard.classList.remove('scale-100');
-        loginCard.classList.add('scale-95');
-    }
-};
-
-// Cerrar modal con la tecla Escape
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && loginModal && !loginModal.classList.contains('opacity-0')) {
-        closeLoginModal();
-    }
-});
-
-// Manejar el envío del formulario
-window.handleLogin = function(e) {
+// Manejar el inicio de sesión
+window.handleLogin = async function(e) {
     e.preventDefault();
+    
+    // Referencias a los inputs del DOM
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const loginBtn = document.querySelector('button[type="submit"]');
     
     if(!loginBtn) return;
     
-    // Estado de carga del botón
+    // Estado de carga visual
     const originalBtnText = loginBtn.innerHTML;
     loginBtn.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> Verificando...';
     loginBtn.disabled = true;
 
-    // Simular llamada a la API
-    setTimeout(() => {
-        closeLoginModal();
-        
-        // Redirigir a la vista modular del Dashboard
-        window.location.href = 'src/views/dashboard.html';
-        
-        // Restaurar el botón en caso de que el usuario presione "Atrás" en el navegador
-        setTimeout(() => {
-            loginBtn.innerHTML = originalBtnText;
-            loginBtn.disabled = false;
-        }, 500);
+    try {
+        // 1. Autenticar al usuario en Supabase Auth
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password,
+        });
 
-    }, 1200);
+        if (authError) throw authError;
+
+        // 2. Obtener el perfil del usuario desde public.profiles
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('role, is_approved')
+            .eq('id', authData.user.id)
+            .single();
+
+        if (profileError) throw profileError;
+
+        // 3. Verificar si la cuenta está aprobada
+        if (!profile.is_approved) {
+            await supabase.auth.signOut();
+            throw new Error("Tu cuenta está pendiente de aprobación por un administrador.");
+        }
+
+        // 4. Redirección basada en el rol
+        if (profile.role === 'admin') {
+            window.location.href = 'admin.html';
+        } else {
+            window.location.href = 'dashboard.html';
+        }
+
+    } catch (error) {
+        // Manejo de errores
+        console.error("Error de autenticación:", error);
+        alert(error.message || "Credenciales incorrectas.");
+        
+        // Restaurar el botón
+        loginBtn.innerHTML = originalBtnText;
+        loginBtn.disabled = false;
+    }
 };
 
-// Lógica de Logout (Esta función será llamada desde dashboard.html)
-window.logout = function() {
-    // Como el dashboard está en src/views/, subimos dos niveles para volver al index
+// Manejar el registro de nuevos usuarios
+document.getElementById('registerForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('regName').value;
+    const profession = document.getElementById('regProfession').value;
+    const email = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPassword').value;
+    const regBtn = this.querySelector('button[type="submit"]');
+
+    const originalBtnText = regBtn.innerHTML;
+    regBtn.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> Enviando...';
+    regBtn.disabled = true;
+
+    try {
+        // Crear usuario en Auth
+        const { data, error } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+        });
+
+        if (error) throw error;
+
+        // Insertar perfil en public.profiles (por defecto is_approved = false)
+        const { error: insertError } = await supabase
+            .from('profiles')
+            .insert([
+                { 
+                    id: data.user.id, 
+                    full_name: name, 
+                    profession: profession,
+                    role: 'user',
+                    is_approved: false 
+                }
+            ]);
+
+        if (insertError) throw insertError;
+
+        alert("Solicitud enviada con éxito. Un administrador debe aprobar tu cuenta.");
+        window.location.reload();
+
+    } catch (error) {
+        console.error("Error en registro:", error);
+        alert(error.message);
+        regBtn.innerHTML = originalBtnText;
+        regBtn.disabled = false;
+    }
+});
+
+// Lógica de Logout
+window.logout = async function() {
+    await supabase.auth.signOut();
     window.location.href = '../../index.html';
 };
