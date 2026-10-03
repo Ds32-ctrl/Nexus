@@ -6,49 +6,92 @@
     <title>Nexus | Acceso Seguro</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        .login-container { width: 100%; max-width: 400px; }
-        .form-group { margin-bottom: 1.5rem; text-align: left; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-muted); font-size: 0.9rem; }
-        .form-control { width: 100%; padding: 0.75rem 1rem; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 8px; font-size: 1rem; transition: border-color 0.3s ease; }
-        .form-control:focus { outline: none; border-color: var(--primary-color); }
+        .auth-container { width: 100%; max-width: 420px; }
+        .form-group { margin-bottom: 1.2rem; text-align: left; }
+        .form-group label { display: block; margin-bottom: 0.4rem; font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;}
+        .form-control { width: 100%; padding: 0.75rem 1rem; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 8px; font-size: 1rem; transition: all 0.3s ease; }
+        .form-control:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2); }
+        
+        /* Sistema de Pestañas */
+        .auth-tabs { display: flex; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); }
+        .tab-btn { flex: 1; padding: 1rem; background: transparent; border: none; color: var(--text-muted); font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s ease; }
+        .tab-btn.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        .tab-btn:hover:not(.active) { color: var(--text-main); background: rgba(255,255,255,0.02); }
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+        
         .back-link { display: block; margin-top: 1.5rem; color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s ease; }
         .back-link:hover { color: var(--text-main); }
-        .auth-toggle { margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; display: block; text-decoration: none; }
-        .auth-toggle:hover { color: var(--text-main); }
     </style>
 </head>
 <body>
-    <!-- El botón de tema sigue funcionando porque usa el CSS principal, pero si quieres la funcionalidad real debes incluir el script del tema aquí también, o en un main.js -->
-    
-    <div class="login-container fade-in">
-        <h2 id="formTitle" style="margin-bottom: 0.5rem; font-size: 2rem;">Acceso <span class="gradient-text">Nexus</span></h2>
-        <p id="formSubtitle" class="subtitle" style="margin-bottom: 2rem; font-size: 1rem;">Autenticación requerida para acceder al sistema.</p>
+    <div class="auth-container fade-in">
+        <h2 style="margin-bottom: 0.5rem; font-size: 2rem;">Sistema <span class="gradient-text">Nexus</span></h2>
+        <p class="subtitle" style="margin-bottom: 2rem; font-size: 1rem;" id="formDesc">Autenticación requerida para operar.</p>
 
         <div class="action-card">
-            <form id="authForm">
-                <!-- Este grupo solo se muestra en modo registro -->
-                <div class="form-group" id="nameGroup" style="display: none;">
-                    <label for="fullName">Nombre de Operador</label>
-                    <input type="text" id="fullName" class="form-control" placeholder="Ej: Daniel Carrillo">
-                </div>
-
-                <div class="form-group">
-                    <label for="email">Identificador (Email)</label>
-                    <input type="email" id="email" class="form-control" placeholder="tu@email.com" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Clave de Acceso</label>
-                    <input type="password" id="password" class="form-control" placeholder="••••••••" required minlength="6">
-                </div>
-                <button type="submit" class="btn btn-primary" id="submitBtn">Iniciar Protocolo</button>
-            </form>
             
-            <a href="#" id="toggleAuthMode" class="auth-toggle">¿No tienes acceso? <span style="color: var(--primary-color);">Solicitar credenciales.</span></a>
+            <div class="auth-tabs">
+                <button class="tab-btn active" onclick="switchTab('login')">Iniciar Sesión</button>
+                <button class="tab-btn" onclick="switchTab('register')">Solicitar Acceso</button>
+            </div>
+
+            <!-- TAB: LOGIN -->
+            <form id="loginForm" class="tab-content active">
+                <div class="form-group">
+                    <label for="loginEmail">Identificador (Email)</label>
+                    <input type="email" id="loginEmail" class="form-control" placeholder="operador@nexus.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Clave de Acceso</label>
+                    <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary" id="loginBtn" style="margin-top: 1rem;">Iniciar Protocolo</button>
+            </form>
+
+            <!-- TAB: REGISTRO -->
+            <form id="registerForm" class="tab-content">
+                <div class="form-group">
+                    <label for="regName">Nombre Completo</label>
+                    <input type="text" id="regName" class="form-control" placeholder="Ej: Daniel Carrillo" required>
+                </div>
+                <div class="form-group">
+                    <label for="regProfession">Enfoque / Profesión</label>
+                    <input type="text" id="regProfession" class="form-control" placeholder="Ej: Ingeniero de Sistemas" required>
+                </div>
+                <div class="form-group">
+                    <label for="regEmail">Correo Electrónico</label>
+                    <input type="email" id="regEmail" class="form-control" placeholder="tu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Nueva Clave (Mín. 6)</label>
+                    <input type="password" id="regPassword" class="form-control" placeholder="••••••••" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary" id="regBtn" style="margin-top: 1rem;">Enviar Solicitud</button>
+            </form>
+
         </div>
         <a href="../../index.html" class="back-link">← Volver al inicio</a>
     </div>
 
-    <!-- Script de inicialización de Supabase (CDN) y lógica de login -->
+    <!-- Lógica de Interfaz Local (Evita errores de carga externa) -->
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            if(tabId === 'login') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('loginForm').classList.add('active');
+                document.getElementById('formDesc').innerText = "Autenticación requerida para operar.";
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('registerForm').classList.add('active');
+                document.getElementById('formDesc').innerText = "Tu cuenta requerirá aprobación del Administrador.";
+            }
+        }
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/auth.js"></script>
 </body>

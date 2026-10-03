@@ -18,10 +18,23 @@
     </nav>
 
     <main class="dashboard-container fade-in">
+        
+        <!-- PANEL DE ADMINISTRADOR (Oculto por defecto, se activa en JS) -->
+        <section id="adminPanel" style="display: none; background: rgba(88, 166, 255, 0.05); border: 1px dashed var(--primary-color); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
+            <h2 style="color: var(--primary-color); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                Comandancia: Solicitudes de Acceso
+            </h2>
+            <div id="pendingRequestsList">
+                Cargando...
+            </div>
+        </section>
+
+        <!-- Cabecera Personalizada -->
         <header class="dashboard-header">
             <div>
-                <h1>Operativa Semanal</h1>
-                <p class="subtitle" style="margin-bottom: 0;">Ejecución de tareas y bloques de Deep Work.</p>
+                <h1>Bienvenido, <span class="gradient-text" id="userName">Operador</span></h1>
+                <p class="subtitle" style="margin-bottom: 0;" id="userProfession">Cargando perfil...</p>
             </div>
             <div class="metrics">
                 <div class="metric-card">
@@ -63,6 +76,6 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../js/auth.js"></script>
+    <script src="../js/dashboard.js"></script>
 </body>
 </html>
