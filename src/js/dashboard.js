@@ -1,7 +1,7 @@
 // src/js/dashboard.js
 
 // ==========================================
-// CONFIGURACIÓN DE SUPABASE (Credenciales fijas)
+// CONFIGURACIÓN DE SUPABASE
 // ==========================================
 const SUPABASE_URL = 'https://sirytqfdlbgkcuvkquiq.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcnl0cWZkbGJna2N1dmtxdWlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NjQwOTMsImV4cCI6MjEwNjU0MDA5M30.rv2TLpBL8_qMq_qlENS031H0neDbDJ_iQr48ohcUp-g';
@@ -10,18 +10,102 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 document.addEventListener('DOMContentLoaded', async () => {
 
     // ==========================================
-    // AUTENTICACIÓN (Con ID de respaldo automático)
+    // AUTENTICACIÓN Y SESIÓN
     // ==========================================
     let userId = 'default-user-id';
     
     try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
         if (session && session.user) {
             userId = session.user.id;
+        } else if (error) {
+            console.warn("No hay sesión activa.");
         }
     } catch (e) {
-        console.warn("Usando modo local/fallback para el usuario.");
+        console.warn("Usando fallback de sesión local (Supabase offline o sin configurar).");
     }
+
+    // ==========================================
+    // CONTROLADOR DE UI (Toasts & Dynamic Modals)
+    // ==========================================
+    const UIController = {
+        showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const icons = {
+                success: '<i class="ph-fill ph-check-circle text-emerald-400 text-xl"></i>',
+                info: '<i class="ph-fill ph-info text-blue-400 text-xl"></i>',
+                warning: '<i class="ph-fill ph-warning-circle text-orange-400 text-xl"></i>',
+                error: '<i class="ph-fill ph-x-circle text-red-400 text-xl"></i>'
+            };
+            
+            const borders = {
+                success: 'border-emerald-500/20',
+                info: 'border-blue-500/20',
+                warning: 'border-orange-500/20',
+                error: 'border-red-500/20'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-2xl glass border ${borders[type]} transform translate-y-10 opacity-0 transition-all duration-300 shadow-lg pointer-events-auto`;
+            toast.innerHTML = `
+                ${icons[type] || icons.info}
+                <p class="text-sm font-medium text-white">${message}</p>
+            `;
+
+            container.appendChild(toast);
+            
+            // Forzar reflow para que la animación CSS se ejecute
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    toast.classList.remove('translate-y-10', 'opacity-0');
+                });
+            });
+
+            // Autodestrucción del toast
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => toast.remove(), 300); // Esperar a que termine la transición
+            }, 3500);
+        },
+
+        openDynamicModal(title, iconHtml, contentHtml, themeColor = 'bg-indigo-500') {
+            const modal = document.getElementById('dynamic-modal');
+            const modalContent = document.getElementById('dynamic-modal-content');
+            const titleEl = document.getElementById('dynamic-modal-title');
+            const bodyEl = document.getElementById('dynamic-modal-body');
+            const glowEl = document.getElementById('dynamic-modal-glow');
+            const btnConfirm = document.getElementById('btn-confirm-dynamic-modal');
+
+            if (!modal) return;
+
+            titleEl.innerHTML = `${iconHtml} ${title}`;
+            bodyEl.innerHTML = contentHtml;
+            glowEl.className = `absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -mt-10 -mr-10 opacity-20 pointer-events-none ${themeColor}`;
+            btnConfirm.className = `px-5 py-2.5 rounded-xl ${themeColor} hover:brightness-110 text-white text-sm font-medium transition-all`;
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+            }, 10);
+        },
+
+        closeDynamicModal() {
+            const modal = document.getElementById('dynamic-modal');
+            const modalContent = document.getElementById('dynamic-modal-content');
+            if (!modal) return;
+
+            modal.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+    };
+
+    // Cerrar el modal dinámico con sus respectivos botones
+    document.getElementById('btn-close-dynamic-modal')?.addEventListener('click', UIController.closeDynamicModal);
+    document.getElementById('btn-confirm-dynamic-modal')?.addEventListener('click', UIController.closeDynamicModal);
 
     // ==========================================
     // 0. FECHA DINÁMICA
@@ -34,7 +118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ==========================================
-    // 1. SISTEMA DE MICRO RESOLUCIONES (CRUD COMPLETO)
+    // 1. SISTEMA DE MICRO RESOLUCIONES (CRUD)
     // ==========================================
     const tasksContainer = document.getElementById('tasks-container');
     const progressBar = document.getElementById('progress-bar');
@@ -43,7 +127,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const taskModal = document.getElementById('task-modal');
     const btnCancelTask = document.getElementById('btn-cancel-task');
     const btnSaveTask = document.getElementById('btn-save-task');
-    
     let currentTasks = [];
 
     async function loadTasks() {
@@ -53,15 +136,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .select('*')
                 .eq('user_id', userId)
                 .order('created_at', { ascending: false });
-
+                
             if (error) throw error;
             currentTasks = data || [];
         } catch (error) {
-            console.warn("Usando datos locales para tareas.");
+            // Datos de prueba si no hay base de datos
             currentTasks = [
                 { id: 1, title: 'Revisar finanzas en Excel', category: 'folder', completed: true },
-                { id: 2, title: 'Leer "Padre Rico, Padre Pobre" (20 págs)', category: 'book-open', completed: false },
-                { id: 3, title: 'Avanzar módulo de Python / FastAPI', category: 'code', completed: false }
+                { id: 2, title: 'Leer "Padre Rico, Padre Pobre" (20 págs)', category: 'book-open', completed: false }
             ];
         }
         renderTasks();
@@ -87,15 +169,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const taskHTML = `
                 <label class="cursor-pointer group flex items-start justify-between gap-3 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-purple-500/30 transition-all relative overflow-hidden" data-task-id="${task.id}">
                     <div class="flex items-start gap-3">
-                        <input type="checkbox" ${isChecked} class="task-checkbox mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-900 accent-purple-500">
+                        <input type="checkbox" ${isChecked} class="task-checkbox mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-900 accent-purple-500 transition-colors">
                         <div>
                             <p class="task-title text-sm font-medium transition-colors ${titleClass}">${task.title}</p>
                             <p class="text-xs text-gray-500 mt-1 flex items-center gap-1"><i class="ph-fill ${style.icon} ${style.color}"></i> ${task.category || 'General'}</p>
                         </div>
                     </div>
-                    <button class="delete-task-btn text-gray-600 hover:text-red-400 transition-colors p-1" title="Eliminar tarea">
-                        <i class="ph-fill ph-trash text-base"></i>
-                    </button>
+                    <button class="delete-task-btn text-gray-600 hover:text-red-400 transition-colors p-1" title="Eliminar"><i class="ph-fill ph-trash text-base"></i></button>
                 </label>
             `;
             tasksContainer.insertAdjacentHTML('beforeend', taskHTML);
@@ -104,77 +184,68 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (addButtonHTML) tasksContainer.insertAdjacentHTML('beforeend', addButtonHTML);
         attachTaskEvents();
         
-        const newBtn = document.getElementById('btn-open-task-modal');
-        if (newBtn) newBtn.addEventListener('click', openModal);
+        // Re-adjuntar el evento al botón "+" recién inyectado
+        document.getElementById('btn-open-task-modal')?.addEventListener('click', openTaskModal);
     }
 
     function attachTaskEvents() {
         if (!tasksContainer) return;
         
-        const checkboxes = tasksContainer.querySelectorAll('.task-checkbox');
-        checkboxes.forEach(checkbox => {
+        // Completar/Descompletar tarea
+        tasksContainer.querySelectorAll('.task-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', async (e) => {
                 const label = e.target.closest('label');
                 const taskId = label.dataset.taskId;
                 const isCompleted = e.target.checked;
-                const titleElement = label.querySelector('.task-title');
-
-                if (isCompleted) {
-                    titleElement.classList.replace('text-white', 'text-gray-500');
-                    titleElement.classList.replace('group-hover:text-purple-300', 'line-through');
-                } else {
-                    titleElement.classList.replace('text-gray-500', 'text-white');
-                    titleElement.classList.replace('line-through', 'group-hover:text-purple-300');
-                }
-
+                
                 const taskIndex = currentTasks.findIndex(t => t.id == taskId);
                 if (taskIndex > -1) currentTasks[taskIndex].completed = isCompleted;
+                
+                renderTasks();
                 updateProgressVisuals();
-
-                try {
-                    await supabase.from('tasks').update({ completed: isCompleted }).eq('id', taskId);
+                
+                try { 
+                    await supabase.from('tasks').update({ completed: isCompleted }).eq('id', taskId); 
                 } catch (err) {
-                    console.warn("Actualización en memoria activa.");
+                    console.warn("Actualización en DB falló, mantenido en UI local.");
                 }
             });
         });
 
-        const deleteBtns = tasksContainer.querySelectorAll('.delete-task-btn');
-        deleteBtns.forEach(btn => {
+        // Eliminar tarea
+        tasksContainer.querySelectorAll('.delete-task-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                e.preventDefault();
+                e.preventDefault(); 
                 e.stopPropagation();
-                const label = e.target.closest('label');
-                const taskId = label.dataset.taskId;
-
-                label.remove();
+                const taskId = e.target.closest('label').dataset.taskId;
+                
                 currentTasks = currentTasks.filter(t => t.id != taskId);
+                renderTasks();
                 updateProgressVisuals();
-
-                try {
-                    await supabase.from('tasks').delete().eq('id', taskId);
+                UIController.showToast('Tarea eliminada', 'info');
+                
+                try { 
+                    await supabase.from('tasks').delete().eq('id', taskId); 
                 } catch (err) {
-                    console.warn("Eliminación en memoria activa.");
+                    console.warn("Eliminación en DB falló, borrado en UI local.");
                 }
             });
         });
     }
 
-    function openModal() {
+    function openTaskModal() {
         if (!taskModal) return;
         taskModal.classList.remove('hidden');
         setTimeout(() => {
             taskModal.classList.remove('opacity-0');
-            const content = document.getElementById('task-modal-content');
-            if (content) content.classList.remove('scale-95');
+            document.getElementById('task-modal-content')?.classList.remove('scale-95');
         }, 10);
     }
 
-    function closeModal() {
+    function closeTaskModal() {
         if (!taskModal) return;
         taskModal.classList.add('opacity-0');
-        const content = document.getElementById('task-modal-content');
-        if (content) content.classList.add('scale-95');
+        document.getElementById('task-modal-content')?.classList.add('scale-95');
         setTimeout(() => {
             taskModal.classList.add('hidden');
             const titleInput = document.getElementById('new-task-title');
@@ -182,44 +253,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, 300);
     }
 
-    btnOpenTaskModal?.addEventListener('click', openModal);
-    btnCancelTask?.addEventListener('click', closeModal);
+    btnOpenTaskModal?.addEventListener('click', openTaskModal);
+    btnCancelTask?.addEventListener('click', closeTaskModal);
 
     btnSaveTask?.addEventListener('click', async () => {
         const titleInput = document.getElementById('new-task-title');
-        const categorySelect = document.getElementById('new-task-category');
-        
         const title = titleInput ? titleInput.value.trim() : '';
-        const category = categorySelect ? categorySelect.value : 'folder';
-
-        if (!title) return;
+        const category = document.getElementById('new-task-category')?.value || 'folder';
+        
+        if (!title) {
+            UIController.showToast('El título de la tarea no puede estar vacío', 'warning');
+            return;
+        }
 
         btnSaveTask.textContent = 'Guardando...';
         btnSaveTask.disabled = true;
 
-        const newTask = {
-            id: Date.now(),
-            user_id: userId,
-            title: title,
-            category: category,
-            completed: false
-        };
-
+        const newTask = { id: Date.now(), user_id: userId, title, category, completed: false };
+        
         try {
             const { data, error } = await supabase
                 .from('tasks')
                 .insert([{ user_id: userId, title, category, completed: false }])
                 .select();
-
+                
             if (!error && data && data[0]) newTask.id = data[0].id;
         } catch (err) {
-            console.warn("Guardado en memoria activo.");
+            console.warn("Guardado en DB falló, creado en UI local.");
         }
 
         currentTasks.unshift(newTask);
         renderTasks();
         updateProgressVisuals();
-        closeModal();
+        closeTaskModal();
+        UIController.showToast('Resolución agregada exitosamente', 'success');
 
         btnSaveTask.textContent = 'Guardar Tarea';
         btnSaveTask.disabled = false;
@@ -249,11 +316,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const timerCircle = document.getElementById('timer-circle');
     
     let timerInterval;
-    let endTime; 
-    const WORK_TIME = 45 * 60; 
+    const WORK_TIME = 45 * 60; // 45 minutos en segundos
     let timeLeft = WORK_TIME;
     let isRunning = false;
-    
     const circleCircumference = timerCircle && typeof timerCircle.getTotalLength === 'function' ? timerCircle.getTotalLength() : 283;
 
     function formatTime(seconds) {
@@ -265,9 +330,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     function updateTimerDisplay() {
         if (timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
         if (timerCircle) {
-            const timeFraction = timeLeft / WORK_TIME;
-            const strokeDashoffset = circleCircumference - (timeFraction * circleCircumference);
-            timerCircle.style.strokeDashoffset = strokeDashoffset;
+            const offset = circleCircumference - ((timeLeft / WORK_TIME) * circleCircumference);
+            timerCircle.style.strokeDashoffset = offset;
         }
     }
 
@@ -281,27 +345,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             startBtn.classList.add('bg-orange-500', 'hover:bg-orange-600', 'shadow-[0_0_20px_rgba(249,115,22,0.3)]');
         }
 
-        endTime = Date.now() + (timeLeft * 1000);
-
+        // Usamos Date.now() para evitar desfasajes del navegador en pestañas inactivas
+        const endTime = Date.now() + (timeLeft * 1000);
+        
         timerInterval = setInterval(() => {
             const secondsLeft = Math.round((endTime - Date.now()) / 1000);
-
+            
             if (secondsLeft <= 0) {
                 clearInterval(timerInterval);
-                isRunning = false;
+                isRunning = false; 
                 timeLeft = WORK_TIME;
-                updateTimerDisplay();
+                updateTimerDisplay(); 
                 resetStartButton();
-                alert('¡Sesión de Deep Work completada! Es hora de un descanso.');
+                UIController.showToast('¡Sesión de Deep Work completada! Buen trabajo.', 'success');
             } else {
-                timeLeft = secondsLeft;
+                timeLeft = secondsLeft; 
                 updateTimerDisplay();
             }
         }, 1000);
     }
 
     function pauseTimer() {
-        clearInterval(timerInterval);
+        clearInterval(timerInterval); 
         isRunning = false;
         if (startBtn) startBtn.textContent = 'Reanudar';
     }
@@ -314,67 +379,76 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    startBtn?.addEventListener('click', () => {
-        if (isRunning) pauseTimer();
-        else startTimer();
+    startBtn?.addEventListener('click', () => isRunning ? pauseTimer() : startTimer());
+    stopBtn?.addEventListener('click', () => { 
+        clearInterval(timerInterval); 
+        isRunning = false; 
+        timeLeft = WORK_TIME; 
+        updateTimerDisplay(); 
+        resetStartButton(); 
+        UIController.showToast('Temporizador reiniciado', 'info');
     });
-
-    stopBtn?.addEventListener('click', () => {
-        clearInterval(timerInterval);
-        isRunning = false;
-        timeLeft = WORK_TIME;
-        updateTimerDisplay();
-        resetStartButton();
-    });
-    updateTimerDisplay();
+    
+    updateTimerDisplay(); // Inicializar visualización
 
     // ==========================================
-    // 3. FINANZAS Y PATRIMONIO (Interactividad Añadida)
+    // 3. FINANZAS Y PATRIMONIO
     // ==========================================
-    const btnFinanceAction = document.getElementById('btn-finance-action'); // <--- Asegúrate de tener este ID en tu HTML
+    const btnFinanceAction = document.getElementById('btn-finance-action');
     
     async function loadFinances() {
-        const netWorthEl = document.getElementById('net-worth');
-        const netTrendEl = document.getElementById('net-trend');
-        const incomeEl = document.getElementById('income-amount');
-        const expenseEl = document.getElementById('expense-amount');
-
         try {
-            const { data, error } = await supabase
-                .from('finances')
-                .select('*')
-                .eq('user_id', userId)
-                .single();
-
+            const { data, error } = await supabase.from('finances').select('*').eq('user_id', userId).single();
             if (error || !data) throw error;
-
+            
+            const netWorthEl = document.getElementById('net-worth');
             if (netWorthEl) netWorthEl.textContent = `$${Number(data.net_worth || 14250).toLocaleString()}`;
-            if (incomeEl) incomeEl.textContent = `+$${Number(data.income || 3200).toLocaleString()}`;
-            if (expenseEl) expenseEl.textContent = `-$${Number(data.expense || 1450).toLocaleString()}`;
-            if (netTrendEl) netTrendEl.innerHTML = `<i class="ph-bold ph-trend-up"></i> +4.2% vs mes anterior`;
         } catch (e) {
-            if (netWorthEl) netWorthEl.textContent = '$14,250.00';
-            if (incomeEl) incomeEl.textContent = '+$3,200';
-            if (expenseEl) expenseEl.textContent = '-$1,450';
-            if (netTrendEl) netTrendEl.innerHTML = `<i class="ph-bold ph-trend-up"></i> +4.2% vs mes anterior`;
+            // Mock Data en caso de no conectar la DB
+            if(document.getElementById('net-worth')) document.getElementById('net-worth').textContent = '$14,250.00';
+            if(document.getElementById('income-amount')) document.getElementById('income-amount').textContent = '+$3,200';
+            if(document.getElementById('expense-amount')) document.getElementById('expense-amount').textContent = '-$1,450';
+            if(document.getElementById('net-trend')) document.getElementById('net-trend').innerHTML = `<i class="ph-bold ph-trend-up"></i> +4.2% vs mes anterior`;
         }
     }
     loadFinances();
 
-    // Evento click para interactuar con finanzas
     btnFinanceAction?.addEventListener('click', () => {
-        alert("Abriendo panel detallado de finanzas... (Aquí puedes conectar tu modal de ingresos/gastos)");
+        UIController.openDynamicModal(
+            'Control Financiero', 
+            '<i class="ph-fill ph-wallet text-emerald-400"></i>', 
+            `
+            <div class="bg-white/5 p-4 rounded-xl border border-white/5">
+                <p class="text-white font-medium mb-2">Desglose de este mes</p>
+                <div class="flex justify-between items-center py-2 border-b border-white/5">
+                    <span class="text-gray-400">Desarrollo Freelance</span>
+                    <span class="text-emerald-400 font-medium">+$2,400</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-white/5">
+                    <span class="text-gray-400">Suscripciones / SaaS</span>
+                    <span class="text-white font-medium">-$120</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-white/5">
+                    <span class="text-gray-400">Gastos Operativos</span>
+                    <span class="text-white font-medium">-$1,330</span>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-4"><i class="ph ph-info"></i> Pronto podrás conectar tu banco automáticamente mediante Plaid API.</p>
+            `, 
+            'bg-emerald-500'
+        );
     });
 
     // ==========================================
-    // 4. PRÓXIMOS BLOQUES / AGENDA (Interactividad Añadida)
+    // 4. PRÓXIMOS BLOQUES / AGENDA
     // ==========================================
     const eventsContainer = document.getElementById('events-container');
-    const btnAddEvent = document.getElementById('btn-add-event'); // <--- Asegúrate de tener este ID en tu HTML
+    const btnAddEvent = document.getElementById('btn-add-event');
 
     if (eventsContainer) {
+        // Estructura mock cargada al DOM
         eventsContainer.innerHTML = `
-            <div class="flex items-stretch gap-3 group cursor-pointer event-card">
+            <div class="flex items-stretch gap-3 group cursor-pointer event-card" data-title="Revisión de Código" data-time="10:00 AM">
                 <div class="flex flex-col items-center justify-center w-14 bg-blue-500/10 border border-blue-500/20 rounded-xl py-2 shrink-0">
                     <span class="text-xs text-blue-400 font-medium">10:00</span>
                     <span class="text-xs text-gray-500">AM</span>
@@ -384,7 +458,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <p class="text-xs text-gray-400 mt-0.5">Arquitectura de la Base de Datos</p>
                 </div>
             </div>
-            <div class="flex items-stretch gap-3 group cursor-pointer event-card">
+            <div class="flex items-stretch gap-3 group cursor-pointer event-card" data-title="Pausa Activa" data-time="14:30 PM">
                 <div class="flex flex-col items-center justify-center w-14 bg-white/5 border border-white/10 rounded-xl py-2 shrink-0">
                     <span class="text-xs text-gray-300 font-medium">14:30</span>
                     <span class="text-xs text-gray-500">PM</span>
@@ -396,82 +470,125 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
         `;
         
-        // Agregar click a los bloques renderizados
-        const eventCards = eventsContainer.querySelectorAll('.event-card');
-        eventCards.forEach(card => {
+        // Agregar interactividad a cada evento
+        eventsContainer.querySelectorAll('.event-card').forEach(card => {
             card.addEventListener('click', () => {
-                alert("Detalles del evento seleccionado.");
+                UIController.openDynamicModal(
+                    card.dataset.title, 
+                    '<i class="ph-fill ph-calendar text-blue-400"></i>', 
+                    `<p class="text-gray-300">Este bloque está agendado para las <strong class="text-white">${card.dataset.time}</strong>. Te enviaremos una notificación cuando sea el momento de empezar.</p>`, 
+                    'bg-blue-500'
+                );
             });
         });
     }
 
-    // Evento para botón de agregar nuevo bloque
     btnAddEvent?.addEventListener('click', () => {
-        alert("Abriendo formulario para nuevo evento en la agenda...");
+        UIController.openDynamicModal(
+            'Agregar Nuevo Evento', 
+            '<i class="ph-fill ph-plus-circle text-blue-400"></i>', 
+            `<p class="text-gray-400">Módulo de calendario en desarrollo. Pronto podrás agregar reuniones, recordatorios y vincularlos a Google Calendar.</p>`, 
+            'bg-blue-500'
+        );
     });
 
     // ==========================================
     // 5. REGISTRO DIARIO Y ESTADO DE ÁNIMO
     // ==========================================
-    const moodContainer = document.getElementById('mood-container');
-    const journalInput = document.getElementById('journal-input');
-    const btnSaveJournal = document.getElementById('btn-save-journal');
-    let currentMood = 'neutral';
-
-    if (moodContainer) {
-        const moodButtons = moodContainer.querySelectorAll('.mood-btn');
-        moodButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                moodButtons.forEach(b => {
-                    b.classList.add('grayscale', 'bg-white/5', 'border-white/10');
-                    b.classList.remove('bg-indigo-500/20', 'border-indigo-500/30', 'bg-green-500/20', 'bg-blue-500/20', 'bg-red-500/20');
-                });
-                const currentBtn = e.currentTarget;
-                currentBtn.classList.remove('grayscale', 'bg-white/5', 'border-white/10');
-                currentBtn.classList.add('bg-indigo-500/20', 'border-indigo-500/30');
-                currentMood = currentBtn.dataset.mood;
+    let currentMood = 'neutral'; // Estado por defecto
+    
+    document.querySelectorAll('.mood-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            // Reiniciar botones
+            document.querySelectorAll('.mood-btn').forEach(b => {
+                b.classList.add('grayscale', 'bg-white/5', 'border-white/10');
+                b.classList.remove('bg-indigo-500/20', 'border-indigo-500/30', 'bg-green-500/20', 'bg-blue-500/20', 'bg-red-500/20');
             });
+            // Activar seleccionado
+            const currentBtn = e.currentTarget;
+            currentBtn.classList.remove('grayscale', 'bg-white/5', 'border-white/10');
+            currentBtn.classList.add('bg-indigo-500/20', 'border-indigo-500/30');
+            currentMood = currentBtn.dataset.mood;
         });
-    }
+    });
 
-    btnSaveJournal?.addEventListener('click', async () => {
-        const content = journalInput ? journalInput.value.trim() : '';
-        if (!content) return;
+    document.getElementById('btn-save-journal')?.addEventListener('click', async (e) => {
+        const input = document.getElementById('journal-input');
+        if (!input || !input.value.trim()) {
+            UIController.showToast('Por favor escribe algo antes de guardar.', 'warning');
+            return;
+        }
 
-        btnSaveJournal.textContent = 'Guardando...';
+        const originalText = e.target.textContent;
+        e.target.textContent = 'Guardando...';
+        e.target.disabled = true;
         
         try {
-            await supabase
-                .from('journal_entries')
-                .insert([{ user_id: userId, content: content, mood: currentMood }]);
-            
-            alert('¡Entrada de diario guardada correctamente!');
-            if (journalInput) journalInput.value = '';
+            await supabase.from('journal_entries').insert([{ user_id: userId, content: input.value.trim(), mood: currentMood }]);
+            UIController.showToast('Entrada de diario guardada correctamente', 'success');
+            input.value = '';
         } catch (error) {
-            alert('Entrada guardada en sesión local.');
-            if (journalInput) journalInput.value = '';
+            UIController.showToast('Entrada guardada de forma local', 'info');
+            input.value = '';
         } finally {
-            btnSaveJournal.textContent = 'Guardar entrada';
+            e.target.textContent = originalText;
+            e.target.disabled = false;
         }
     });
 
     // ==========================================
-    // 6. BOTONES SUPERIORES (Notificaciones, Perfil, etc.)
+    // 6. BOTONES SUPERIORES (Topbar & Sidebar)
     // ==========================================
-    // MODO CORRECTO: Usar IDs en lugar de selectores frágiles como 'header button.relative'
-    const btnNotifications = document.getElementById('btn-notifications');
-    const btnProfile = document.getElementById('btn-profile');
-    const btnSettings = document.getElementById('btn-settings'); // Por si lo tienes
-
-    btnNotifications?.addEventListener('click', () => {
-        alert('Campana: No tienes notificaciones pendientes.');
+    document.getElementById('btn-notifications')?.addEventListener('click', () => {
+        UIController.showToast('Bandeja vacía. No tienes notificaciones pendientes.', 'info');
     });
 
-    btnProfile?.addEventListener('click', () => {
-        alert('Perfil: Abriendo menú de usuario y configuración de cuenta...');
+    document.getElementById('btn-profile')?.addEventListener('click', () => {
+        UIController.openDynamicModal(
+            'Perfil de Usuario', 
+            '<i class="ph-fill ph-user-circle text-purple-400"></i>', 
+            `
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 border-2 border-white/10 flex items-center justify-center text-xl text-white font-bold shadow-lg">DC</div>
+                <div>
+                    <p class="text-white font-medium text-lg">Administrador Nexus</p>
+                    <p class="text-emerald-400 text-xs mt-0.5 flex items-center gap-1"><i class="ph-fill ph-check-circle"></i> Conectado y en línea</p>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Estadísticas Generales</p>
+                <div class="flex justify-between py-2 border-b border-white/5">
+                    <span class="text-gray-400">Horas Deep Work (Total)</span>
+                    <span class="text-white font-medium">14h 30m</span>
+                </div>
+                <div class="flex justify-between py-2">
+                    <span class="text-gray-400">Micro resoluciones hoy</span>
+                    <span class="text-white font-medium">2 completadas</span>
+                </div>
+            </div>
+            `, 
+            'bg-purple-500'
+        );
     });
 
-    btnSettings?.addEventListener('click', () => {
-        alert('Ajustes: Abriendo panel de preferencias...');
+    document.getElementById('btn-settings')?.addEventListener('click', () => {
+        UIController.openDynamicModal(
+            'Configuración', 
+            '<i class="ph-fill ph-gear text-gray-400"></i>', 
+            `
+            <div class="space-y-2">
+                <button class="w-full text-left flex justify-between items-center px-4 py-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors text-white group">
+                    Apariencia y Tema <i class="ph ph-caret-right text-gray-500 group-hover:text-white transition-colors"></i>
+                </button>
+                <button class="w-full text-left flex justify-between items-center px-4 py-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors text-white group">
+                    Integraciones (API / Webhooks) <i class="ph ph-caret-right text-gray-500 group-hover:text-white transition-colors"></i>
+                </button>
+                <button class="w-full text-left flex justify-between items-center px-4 py-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors text-white group">
+                    Exportar Base de Datos <i class="ph ph-download-simple text-gray-500 group-hover:text-white transition-colors"></i>
+                </button>
+            </div>
+            `, 
+            'bg-gray-600'
+        );
     });
 });
