@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus | Panel de Control</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">NEXUS <span class="status-dot pulse" style="margin-left: 8px;"></span></div>
+        <div class="nav-actions">
+            <button class="btn-icon" id="logoutBtn" aria-label="Cerrar sesión">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </button>
+        </div>
+    </nav>
+
+    <main class="dashboard-container fade-in">
+        <header class="dashboard-header">
+            <div>
+                <h1>Operativa Semanal</h1>
+                <p class="subtitle" style="margin-bottom: 0;">Ejecución de tareas y bloques de Deep Work.</p>
+            </div>
+            <div class="metrics">
+                <div class="metric-card">
+                    <span class="metric-value">4h</span>
+                    <span class="metric-label">Deep Work Hoy</span>
+                </div>
+            </div>
+        </header>
+
+        <section class="schedule-grid">
+            <!-- Bloque de Trabajo Operativo -->
+            <div class="task-card border-work">
+                <div class="task-time">01:00 - 07:00</div>
+                <h3 class="task-title">Operaciones T1</h3>
+                <p class="task-desc">Trabajo operativo. Auditoría de procesos y soporte técnico avanzado.</p>
+            </div>
+
+            <!-- Bloque de Universidad -->
+            <div class="task-card border-study">
+                <div class="task-time">15:00 - 17:00</div>
+                <h3 class="task-title">Academia & Sistemas</h3>
+                <p class="task-desc">Estudio enfocado. Sistemas Operativos y Bases de Datos.</p>
+            </div>
+
+            <!-- El Nuevo Bloque de Hierro -->
+            <div class="task-card border-deep">
+                <div class="task-time">20:00 - 21:30</div>
+                <h3 class="task-title">Dominación Técnica</h3>
+                <p class="task-desc">Práctica deliberada. AWS, FastAPI, arquitecturas limpias. Cero distracciones.</p>
+            </div>
+
+            <!-- Bloque de Desconexión Genuina -->
+            <div class="task-card border-rest">
+                <div class="task-time">21:30 - 22:30</div>
+                <h3 class="task-title">Desconexión Genuina</h3>
+                <p class="task-desc">Lectura sin pantallas, ajedrez o síntesis de conocimientos.</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/auth.js"></script>
+</body>
+</html>

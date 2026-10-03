@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus | Acceso Seguro</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        .back-link {
+            display: block;
+            margin-top: 1.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s ease;
+        }
+        .back-link:hover {
+            color: var(--text-main);
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container fade-in">
+        <h2 style="margin-bottom: 0.5rem; font-size: 2rem;">Acceso <span class="gradient-text">Nexus</span></h2>
+        <p class="subtitle" style="margin-bottom: 2rem; font-size: 1rem;">Autenticación requerida para acceder al sistema.</p>
+
+        <div class="action-card">
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Identificador (Email)</label>
+                    <input type="email" id="email" class="form-control" placeholder="tu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Clave de Acceso</label>
+                    <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary" id="loginBtn">Iniciar Protocolo</button>
+            </form>
+        </div>
+        <a href="../../index.html" class="back-link">← Volver al inicio</a>
+    </div>
+
+    <!-- Script de inicialización de Supabase (CDN) y lógica de login -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/auth.js"></script>
+</body>
+</html>

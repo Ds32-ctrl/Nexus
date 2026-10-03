@@ -4,22 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus | Sistema de Alto Rendimiento</title>
+    <!-- Enlace al archivo CSS separado -->
     <link rel="stylesheet" href="src/css/style.css">
-    </head>
+</head>
 <body>
+    <!-- Botón flotante para cambiar de tema -->
+    <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema">
+        <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+    </button>
 
-    <div class="container">
+    <div class="container fade-in">
         <div class="brand-badge">
-            <span class="status-dot"></span> Entorno Restringido
+            <span class="status-dot pulse"></span> Entorno Restringido
         </div>
         
-        <h1>Domina tu tiempo.<br>Construye tu futuro.</h1>
+        <h1 class="hero-title">Domina tu tiempo.<br><span class="gradient-text">Construye tu futuro.</span></h1>
         <p class="subtitle">Tu espacio personal de alto rendimiento. Sin ruido, sin distracciones. Solo métricas, ejecución y conocimiento.</p>
 
         <div class="action-card">
-            <!-- Próximo paso: Aquí integraremos el Login de Supabase/Firebase -->
-            <button class="btn" onclick="iniciarSesion()">Acceder al Dashboard</button>
-            <button class="btn btn-outline" onclick="verDocumentacion()">Leer Documentación</button>
+            <button class="btn btn-primary" onclick="window.location.href='src/views/login.html'">
+                <span>Acceder al Dashboard</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+            <button class="btn btn-outline" onclick="verDocumentacion()">
+                Leer Documentación
+            </button>
         </div>
 
         <div class="footer-note">
@@ -27,11 +37,45 @@
         </div>
     </div>
 
+    <!-- Script movido a un archivo separado, pero por ahora lo dejamos aquí para la funcionalidad del tema -->
     <script>
-        // Lógica inicial para preparar las siguientes fases
-        function iniciarSesion() {
-            alert("Fase 2: Aquí conectaremos la API de autenticación para validar tu acceso seguro.");
+        // Lógica del Tema (Dark/Light)
+        const themeToggle = document.getElementById('themeToggle');
+        const sunIcon = document.getElementById('sunIcon');
+        const moonIcon = document.getElementById('moonIcon');
+        const body = document.body;
+
+        // Comprobar preferencia guardada o del sistema
+        const currentTheme = localStorage.getItem('theme');
+        const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+
+        // Establecer el tema inicial
+        if (currentTheme == "light") {
+            body.classList.add("light-mode");
+            sunIcon.style.display = "none";
+            moonIcon.style.display = "block";
+        } else if (currentTheme == "dark" || prefersDarkScheme.matches) {
+            // Dark mode es por defecto si no hay nada guardado
+            sunIcon.style.display = "block";
+            moonIcon.style.display = "none";
         }
+
+        // Cambiar tema al hacer clic
+        themeToggle.addEventListener("click", function() {
+            body.classList.toggle("light-mode");
+            
+            let theme = "dark";
+            if (body.classList.contains("light-mode")) {
+                theme = "light";
+                sunIcon.style.display = "none";
+                moonIcon.style.display = "block";
+            } else {
+                sunIcon.style.display = "block";
+                moonIcon.style.display = "none";
+            }
+            
+            localStorage.setItem("theme", theme);
+        });
 
         function verDocumentacion() {
             alert("Aquí podrás agregar tus notas técnicas, resúmenes y el 'Diario de Síntesis'.");
