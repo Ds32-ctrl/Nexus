@@ -3,8 +3,6 @@
 // ==========================================
 // CONFIGURACIÓN DE SUPABASE
 // ==========================================
-// Reemplaza con tus credenciales de Supabase. 
-// Idealmente, esto debería venir de tu auth.js si ya lo exportaste desde allí.
 const SUPABASE_URL = 'https://sirytqfdlbgkcuvkquiq.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcnl0cWZkbGJna2N1dmtxdWlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NjQwOTMsImV4cCI6MjEwNjU0MDA5M30.rv2TLpBL8_qMq_qlENS031H0neDbDJ_iQr48ohcUp-g';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -16,13 +14,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ==========================================
     const { data: { session } } = await supabase.auth.getSession();
     
-    if (!session) {
-        // Redirigir al login si no hay sesión activa
-        console.warn("No hay sesión activa. Redirigiendo...");
-        // window.location.href = '/login.html'; 
-        // Comentar la línea superior temporalmente para pruebas sin auth estricto
+    let userId = session?.user?.id;
+    if (!userId) {
+        console.warn("No hay sesión activa. Usando modo local/prueba para que los botones funcionen.");
+        userId = 'usuario-prueba-local'; // Fallback para que la UI no se bloquee
     }
-    const userId = session?.user?.id || null; // Manejo seguro si pruebas sin login
 
     // ==========================================
     // 0. FECHA DINÁMICA
@@ -40,7 +36,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tasksContainer = document.getElementById('tasks-container');
     const progressBar = document.getElementById('progress-bar');
     const progressText = document.getElementById('progress-text');
-    const btnOpenTaskModal = document.getElementById('btn-open-task-modal');
     const taskModal = document.getElementById('task-modal');
     const btnCancelTask = document.getElementById('btn-cancel-task');
     const btnSaveTask = document.getElementById('btn-save-task');
@@ -49,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- A. Leer (Read) Tareas desde Supabase ---
     async function loadTasks() {
-        if (!userId) return; // Salir si no hay usuario
+        if (userId === 'usuario-prueba-local') return; // No intentar cargar si es modo prueba
 
         try {
             const { data, error } = await supabase
@@ -59,7 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-            currentTasks = data;
+            currentTasks = data || [];
             renderTasks();
             updateProgressVisuals();
         } catch (error) {
@@ -71,12 +66,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     function renderTasks() {
         if (!tasksContainer) return;
 
-        // Limpiar contenedor pero guardar el botón de añadir
-        const addButtonHTML = btnOpenTaskModal.outerHTML;
+        // Guardar el HTML del botón de añadir antes de limpiar
+        const addButtonElement = document.getElementById('btn-open-task-modal');
+        const addButtonHTML = addButtonElement ? addButtonElement.outerHTML : `
+            <button id="btn-open-task-modal" class="flex items-center justify-center gap-2 p-4 rounded-2xl border border-dashed border-white/20 text-gray-400 hover:text-white hover:border-white/40 hover:bg-white/5 transition-all h-full min-h-[80px]">
+                <i class="ph ph-plus"></i> Nueva Resolución
+            </button>`;
+
         tasksContainer.innerHTML = '';
 
         currentTasks.forEach(task => {
-            // Mapeo de categorías a colores e íconos
             const categoryStyles = {
                 'code': { icon: 'ph-code', color: 'text-orange-400' },
                 'book-open': { icon: 'ph-book-open', color: 'text-blue-400' },
@@ -97,7 +96,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <p class="text-xs text-gray-500 mt-1 flex items-center gap-1"><i class="ph-fill ${style.icon} ${style.color}"></i> ${task.category}</p>
                         </div>
                     </div>
-                    <button class="delete-task-btn text-gray-600 hover:text-red-400 transition-colors" title="Eliminar tarea">
+                    <button class="delete-task-btn text-gray-600 hover:text-red-400 transition-colors z-10" title="Eliminar tarea">
                         <i class="ph-fill ph-trash"></i>
                     </button>
                 </label>
@@ -105,27 +104,53 @@ document.addEventListener('DOMContentLoaded', async () => {
             tasksContainer.insertAdjacentHTML('beforeend', taskHTML);
         });
 
-        // Re-insertar el botón de añadir al final
+        // Re-insertar el botón al final
         tasksContainer.insertAdjacentHTML('beforeend', addButtonHTML);
-        
-        // Re-asignar eventos a los nuevos elementos
-        attachTaskEvents();
-        // Re-asignar evento al botón de abrir modal (ya que fue re-dibujado)
-        document.getElementById('btn-open-task-modal').addEventListener('click', openModal);
     }
 
-    // --- C. Actualizar y Eliminar (Update & Delete) Eventos ---
-    function attachTaskEvents() {
-        // Eventos para el Checkbox (Update)
-        const checkboxes = tasksContainer.querySelectorAll('.task-checkbox');
-        checkboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', async (e) => {
+    // --- C. Eventos Delegados para Actualizar, Eliminar y Abrir Modal ---
+    if (tasksContainer) {
+        tasksContainer.addEventListener('click', async (e) => {
+            // 1. Abrir Modal (Nueva Resolución)
+            const btnOpen = e.target.closest('#btn-open-task-modal');
+            if (btnOpen) {
+                openModal();
+                return;
+            }
+
+            // 2. Eliminar Tarea
+            const btnDelete = e.target.closest('.delete-task-btn');
+            if (btnDelete) {
+                e.preventDefault();
+                const label = btnDelete.closest('label');
+                const taskId = label.dataset.taskId;
+
+                // Actualizar UI inmediatamente
+                label.remove();
+                currentTasks = currentTasks.filter(t => t.id != taskId);
+                updateProgressVisuals();
+
+                // Eliminar en Supabase (si no es modo prueba)
+                if (userId !== 'usuario-prueba-local') {
+                    try {
+                        await supabase.from('tasks').delete().eq('id', taskId);
+                    } catch (error) {
+                        console.error("Error eliminando tarea:", error);
+                    }
+                }
+                return;
+            }
+        });
+
+        // 3. Marcar Checkbox (Usamos change event)
+        tasksContainer.addEventListener('change', async (e) => {
+            if (e.target.classList.contains('task-checkbox')) {
                 const label = e.target.closest('label');
                 const taskId = label.dataset.taskId;
                 const isCompleted = e.target.checked;
                 const titleElement = label.querySelector('.task-title');
 
-                // Actualización visual inmediata
+                // Actualizar UI
                 if (isCompleted) {
                     titleElement.classList.replace('text-white', 'text-gray-500');
                     titleElement.classList.replace('group-hover:text-purple-300', 'line-through');
@@ -134,76 +159,43 @@ document.addEventListener('DOMContentLoaded', async () => {
                     titleElement.classList.replace('line-through', 'group-hover:text-purple-300');
                 }
 
-                // Actualizar array en memoria para la barra de progreso
                 const taskIndex = currentTasks.findIndex(t => t.id == taskId);
                 if (taskIndex > -1) currentTasks[taskIndex].completed = isCompleted;
                 updateProgressVisuals();
 
-                // Petición a Supabase
-                try {
-                    const { error } = await supabase
-                        .from('tasks')
-                        .update({ completed: isCompleted })
-                        .eq('id', taskId);
-                    
-                    if (error) throw error;
-                } catch (error) {
-                    console.error("Error actualizando tarea:", error);
-                    // Opcional: Revertir UI si falla la BD
+                // Actualizar en Supabase
+                if (userId !== 'usuario-prueba-local') {
+                    try {
+                        await supabase.from('tasks').update({ completed: isCompleted }).eq('id', taskId);
+                    } catch (error) {
+                        console.error("Error actualizando tarea:", error);
+                    }
                 }
-            });
-        });
-
-        // Eventos para el botón de Eliminar (Delete)
-        const deleteBtns = tasksContainer.querySelectorAll('.delete-task-btn');
-        deleteBtns.forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.preventDefault(); // Evita que se dispare el checkbox
-                e.stopPropagation(); // Evita que el click suba al label
-                
-                const label = e.target.closest('label');
-                const taskId = label.dataset.taskId;
-
-                // Remover visualmente y de memoria inmediatamente para UI fluida
-                label.remove();
-                currentTasks = currentTasks.filter(t => t.id != taskId);
-                updateProgressVisuals();
-
-                // Petición a Supabase
-                try {
-                    const { error } = await supabase
-                        .from('tasks')
-                        .delete()
-                        .eq('id', taskId);
-                    
-                    if (error) throw error;
-                } catch (error) {
-                    console.error("Error eliminando tarea:", error);
-                }
-            });
+            }
         });
     }
 
-    // --- D. Crear (Create) Nueva Tarea ---
+    // --- D. Lógica del Modal ---
     function openModal() {
+        if (!taskModal) return;
         taskModal.classList.remove('hidden');
         setTimeout(() => {
             taskModal.classList.remove('opacity-0');
-            document.getElementById('task-modal-content').classList.remove('scale-95');
+            document.getElementById('task-modal-content')?.classList.remove('scale-95');
         }, 10);
     }
 
     function closeModal() {
+        if (!taskModal) return;
         taskModal.classList.add('opacity-0');
-        document.getElementById('task-modal-content').classList.add('scale-95');
+        document.getElementById('task-modal-content')?.classList.add('scale-95');
         setTimeout(() => {
             taskModal.classList.add('hidden');
-            // Limpiar inputs
-            document.getElementById('new-task-title').value = '';
+            const titleInput = document.getElementById('new-task-title');
+            if (titleInput) titleInput.value = '';
         }, 300);
     }
 
-    btnOpenTaskModal?.addEventListener('click', openModal);
     btnCancelTask?.addEventListener('click', closeModal);
 
     btnSaveTask?.addEventListener('click', async () => {
@@ -213,21 +205,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         const title = titleInput.value.trim();
         const category = categorySelect.value;
 
-        if (!title || !userId) return;
+        if (!title) return;
 
         btnSaveTask.textContent = 'Guardando...';
         btnSaveTask.disabled = true;
+
+        if (userId === 'usuario-prueba-local') {
+            // Modo local simulado
+            const newTask = { id: Date.now(), title, category, completed: false };
+            currentTasks.unshift(newTask);
+            renderTasks();
+            updateProgressVisuals();
+            closeModal();
+            btnSaveTask.textContent = 'Guardar Tarea';
+            btnSaveTask.disabled = false;
+            return;
+        }
 
         try {
             const { data, error } = await supabase
                 .from('tasks')
                 .insert([{ user_id: userId, title: title, category: category, completed: false }])
-                .select(); // Devolver el dato insertado
+                .select(); 
 
             if (error) throw error;
 
-            if (data) {
-                currentTasks.unshift(data[0]); // Añadir al principio del array
+            if (data && data.length > 0) {
+                currentTasks.unshift(data[0]);
                 renderTasks();
                 updateProgressVisuals();
             }
@@ -256,12 +260,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (progressText) progressText.textContent = `Progreso: ${percentage}%`;
     }
 
-    // Llamada inicial para cargar tareas
-    if (userId) loadTasks();
-
+    // Inicializar tareas
+    loadTasks();
+    updateProgressVisuals(); // Asegurar que inicie en 0% visualmente
     
     // ==========================================
-    // 2. TEMPORIZADOR DE DEEP WORK (Sin cambios funcionales, funciona perfecto en cliente)
+    // 2. TEMPORIZADOR DE DEEP WORK
     // ==========================================
     const timerDisplay = document.getElementById('timer-display');
     const startBtn = document.getElementById('btn-start-timer');
@@ -356,28 +360,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // ==========================================
-    // 3. REGISTRO DIARIO Y ESTADO DE ÁNIMO (CRUD BASICO)
+    // 3. REGISTRO DIARIO Y ESTADO DE ÁNIMO
     // ==========================================
     const moodContainer = document.getElementById('mood-container');
     const journalInput = document.getElementById('journal-input');
     const btnSaveJournal = document.getElementById('btn-save-journal');
-    let currentMood = 'neutral'; // Por defecto
+    let currentMood = 'neutral'; 
 
     if (moodContainer) {
         const moodButtons = moodContainer.querySelectorAll('.mood-btn');
         
         moodButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
-                // Resetear todos
                 moodButtons.forEach(b => {
                     b.classList.add('grayscale', 'bg-white/5', 'border-white/10');
-                    b.classList.remove('bg-indigo-500/20', 'border-indigo-500/30', 'bg-green-500/20', 'bg-blue-500/20', 'bg-red-500/20', 'bg-gray-500/20');
+                    b.classList.remove('bg-indigo-500/20', 'border-indigo-500/30');
                 });
 
-                // Activar seleccionado
                 const currentBtn = e.currentTarget;
                 currentBtn.classList.remove('grayscale', 'bg-white/5', 'border-white/10');
-                currentBtn.classList.add('bg-indigo-500/20', 'border-indigo-500/30'); // Estilo base de selección
+                currentBtn.classList.add('bg-indigo-500/20', 'border-indigo-500/30'); 
                 currentMood = currentBtn.dataset.mood;
             });
         });
@@ -386,10 +388,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnSaveJournal) {
         btnSaveJournal.addEventListener('click', async () => {
             const content = journalInput.value.trim();
-            if (!content || !userId) return;
+            if (!content) return;
 
             btnSaveJournal.textContent = 'Guardando...';
+            btnSaveJournal.disabled = true;
             
+            if (userId === 'usuario-prueba-local') {
+                alert('Entrada guardada correctamente (Modo Local).');
+                journalInput.value = '';
+                btnSaveJournal.textContent = 'Guardar entrada';
+                btnSaveJournal.disabled = false;
+                return;
+            }
+
             try {
                 const { error } = await supabase
                     .from('journal_entries')
@@ -398,12 +409,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (error) throw error;
                 
                 alert('Entrada guardada correctamente.');
-                journalInput.value = ''; // Limpiar textarea
+                journalInput.value = ''; 
             } catch (error) {
                 console.error("Error guardando entrada de diario:", error);
                 alert("Hubo un error al guardar la entrada.");
             } finally {
                 btnSaveJournal.textContent = 'Guardar entrada';
+                btnSaveJournal.disabled = false;
             }
         });
     }
