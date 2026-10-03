@@ -42,7 +42,7 @@
                 <nav class="mt-6 px-2 lg:px-4 space-y-1">
                     <p class="hidden lg:block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-3">Módulos Activos</p>
                     
-                    <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 group transition-all">
+                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 group transition-all">
                         <i class="ph-fill ph-squares-four text-xl group-hover:scale-110 transition-transform"></i>
                         <span class="hidden lg:block font-medium">Command Center</span>
                     </a>
@@ -50,7 +50,7 @@
                         <i class="ph ph-timer text-xl group-hover:scale-110 transition-transform"></i>
                         <span class="hidden lg:block font-medium">Deep Work</span>
                     </a>
-                    <a href="resolutions.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group">
+                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group">
                         <i class="ph ph-check-square-offset text-xl group-hover:scale-110 transition-transform"></i>
                         <span class="hidden lg:block font-medium">Micro Resoluciones</span>
                     </a>
@@ -66,7 +66,7 @@
                     <!-- Separador -->
                     <div class="h-px w-full bg-white/5 my-4"></div>
 
-                    <!-- Módulos en Desarrollo -->
+                    <!-- Módulos en Desarrollo (Estructura Base) -->
                     <p class="hidden lg:block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-3">Desarrollo (Próximamente)</p>
                     
                     <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-500 hover:text-gray-300 transition-all group">
@@ -104,8 +104,8 @@
             <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <h1 class="text-3xl font-bold text-white tracking-tight">Bienvenido de nuevo</h1>
-                    <p id="current-date" class="text-gray-400 text-sm mt-1 flex items-center gap-2">
-                        <i class="ph ph-calendar-blank"></i> Cargando fecha...
+                    <p class="text-gray-400 text-sm mt-1 flex items-center gap-2">
+                        <i class="ph ph-calendar-blank"></i> Sábado, 3 de Octubre, 2026
                     </p>
                 </div>
                 <div class="flex items-center gap-4">
@@ -128,7 +128,7 @@
             <!-- Grid Principal -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 
-                <!-- 1. Deep Work Widget -->
+                <!-- 1. Deep Work Widget (Ocupa 2 columnas) -->
                 <div class="glass-card rounded-3xl p-6 md:col-span-2 relative overflow-hidden group">
                     <div class="absolute top-0 right-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl -mt-10 -mr-10 transition-all group-hover:bg-indigo-500/20"></div>
                     
@@ -149,10 +149,10 @@
                             <!-- Circular Progress SVG -->
                             <svg class="w-full h-full transform -rotate-90 drop-shadow-[0_0_15px_rgba(99,102,241,0.3)]" viewBox="0 0 100 100">
                                 <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="6" />
-                                <circle id="timer-circle" cx="50" cy="50" r="45" fill="none" stroke="#6366f1" stroke-width="6" stroke-dasharray="283" stroke-dashoffset="90" stroke-linecap="round" class="transition-all duration-1000" />
+                                <circle cx="50" cy="50" r="45" fill="none" stroke="#6366f1" stroke-width="6" stroke-dasharray="283" stroke-dashoffset="90" stroke-linecap="round" class="transition-all duration-1000" />
                             </svg>
                             <div class="absolute flex flex-col items-center">
-                                <span id="timer-display" class="text-3xl font-bold text-white tracking-tighter">45:00</span>
+                                <span class="text-3xl font-bold text-white tracking-tighter">45:00</span>
                                 <span class="text-[10px] uppercase tracking-widest text-gray-400 mt-1">Enfoque</span>
                             </div>
                         </div>
@@ -169,10 +169,10 @@
                                 </div>
                             </div>
                             <div class="flex gap-2">
-                                <button id="btn-start-timer" class="flex-1 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-semibold transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_25px_rgba(99,102,241,0.5)]">
+                                <button class="flex-1 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-semibold transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_25px_rgba(99,102,241,0.5)]">
                                     Iniciar
                                 </button>
-                                <button id="btn-stop-timer" class="px-4 py-2.5 rounded-xl glass hover:bg-white/5 text-gray-300 transition-colors">
+                                <button class="px-4 py-2.5 rounded-xl glass hover:bg-white/5 text-gray-300 transition-colors">
                                     <i class="ph-bold ph-stop"></i>
                                 </button>
                             </div>
@@ -223,38 +223,38 @@
                         <h2 class="text-lg font-semibold text-white flex items-center gap-2">
                             <i class="ph-fill ph-check-square-offset text-purple-400"></i> Micro Resoluciones Diarias
                         </h2>
-                        <span id="progress-text" class="text-sm text-gray-400">Progreso: 0%</span>
+                        <span class="text-sm text-gray-400">Progreso: 60%</span>
                     </div>
                     
                     <!-- Barra de progreso -->
                     <div class="w-full h-1.5 bg-white/5 rounded-full mb-6 overflow-hidden">
-                        <div id="progress-bar" class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full w-[0%] transition-all duration-300 shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
+                        <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full w-[60%] shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                         <!-- Tarea 1 -->
                         <label class="cursor-pointer group flex items-start gap-3 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-purple-500/30 transition-all relative overflow-hidden">
-                            <input type="checkbox" checked class="task-checkbox mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-900 accent-purple-500">
+                            <input type="checkbox" checked class="mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-900 accent-purple-500">
                             <div>
-                                <p class="task-title text-sm font-medium text-gray-500 line-through">Revisar finanzas en Excel</p>
+                                <p class="text-sm font-medium text-gray-500 line-through">Revisar finanzas en Excel</p>
                                 <p class="text-xs text-gray-600 mt-1 flex items-center gap-1"><i class="ph-fill ph-folder text-emerald-500/50"></i> Administración</p>
                             </div>
                         </label>
 
                         <!-- Tarea 2 -->
                         <label class="cursor-pointer group flex items-start gap-3 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-purple-500/30 transition-all">
-                            <input type="checkbox" class="task-checkbox mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-900 accent-purple-500">
+                            <input type="checkbox" class="mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-900 accent-purple-500">
                             <div>
-                                <p class="task-title text-sm font-medium text-white group-hover:text-purple-300 transition-colors">Leer "Padre Rico, Padre Pobre" (20 págs)</p>
+                                <p class="text-sm font-medium text-white group-hover:text-purple-300 transition-colors">Leer "Padre Rico, Padre Pobre" (20 págs)</p>
                                 <p class="text-xs text-gray-500 mt-1 flex items-center gap-1"><i class="ph-fill ph-book-open text-blue-400"></i> Desarrollo Personal</p>
                             </div>
                         </label>
 
                         <!-- Tarea 3 -->
                         <label class="cursor-pointer group flex items-start gap-3 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-purple-500/30 transition-all">
-                            <input type="checkbox" class="task-checkbox mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-900 accent-purple-500">
+                            <input type="checkbox" class="mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-900 accent-purple-500">
                             <div>
-                                <p class="task-title text-sm font-medium text-white group-hover:text-purple-300 transition-colors">Avanzar módulo de Python / FastAPI</p>
+                                <p class="text-sm font-medium text-white group-hover:text-purple-300 transition-colors">Avanzar módulo de Python / FastAPI</p>
                                 <p class="text-xs text-gray-500 mt-1 flex items-center gap-1"><i class="ph-fill ph-code text-orange-400"></i> Proyecto APH</p>
                             </div>
                         </label>
@@ -280,10 +280,10 @@
                         <div>
                             <p class="text-sm text-gray-400 mb-2">¿Cómo te sientes hoy?</p>
                             <div class="flex gap-2">
-                                <button class="mood-btn w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all text-xl grayscale hover:grayscale-0" data-mood="happy" aria-label="Feliz">😄</button>
-                                <button class="mood-btn w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all text-xl grayscale hover:grayscale-0" data-mood="good" aria-label="Bien">🙂</button>
-                                <button class="mood-btn w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all text-xl grayscale hover:grayscale-0" data-mood="neutral" aria-label="Neutral">😐</button>
-                                <button class="mood-btn w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all text-xl grayscale hover:grayscale-0" data-mood="tired" aria-label="Cansado">😫</button>
+                                <button class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-green-500/20 hover:border-green-500/30 hover:text-green-400 transition-all text-xl grayscale hover:grayscale-0">😄</button>
+                                <button class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center bg-blue-500/20 border-blue-500/30 text-blue-400 transition-all text-xl">🙂</button>
+                                <button class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-gray-500/20 hover:border-gray-500/30 transition-all text-xl grayscale hover:grayscale-0">😐</button>
+                                <button class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-red-500/20 hover:border-red-500/30 transition-all text-xl grayscale hover:grayscale-0">😫</button>
                             </div>
                         </div>
 
@@ -334,9 +334,9 @@
         </main>
     </div>
 
-    <!-- Scripts con Supabase -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/auth.js"></script>
-    <script src="../js/dashboard.js"></script>
+    <script type="module" src="../js/dashboard.js"></script>
 </body>
 </html>
