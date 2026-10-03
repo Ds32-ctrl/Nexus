@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus OS | Focus Room</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body class="antialiased selection:bg-indigo-500 selection:text-white bg-[#050505] overflow-hidden">
+    
+    <div class="bg-glow"></div>
+
+    <div class="h-screen flex">
+        <!-- SIDEBAR -->
+        <div id="sidebar-container"></div>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-10 relative flex flex-col h-full">
+            
+            <header class="flex justify-between items-center mb-8 shrink-0">
+                <div>
+                    <h1 class="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                        <i class="ph-fill ph-brain text-indigo-500"></i> Focus Room
+                    </h1>
+                    <p class="text-gray-400 text-sm mt-1">Elimina las distracciones y entra en estado de flujo.</p>
+                </div>
+            </header>
+
+            <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
+                
+                <!-- COLUMNA IZQUIERDA: Configuración y Stats -->
+                <div class="lg:col-span-4 flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar">
+                    
+                    <!-- Objetivo Actual -->
+                    <div class="glass-card rounded-3xl p-6 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl -mt-10 -mr-10"></div>
+                        <h2 class="text-sm font-semibold text-white flex items-center gap-2 mb-4">
+                            <i class="ph-fill ph-target text-purple-400"></i> Objetivo de la Sesión
+                        </h2>
+                        <textarea id="focus-task-input" class="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all resize-none h-28" placeholder="¿En qué te vas a enfocar exclusivamente durante este bloque?"></textarea>
+                    </div>
+
+                    <!-- Ambient Sounds UI -->
+                    <div class="glass-card rounded-3xl p-6">
+                        <h2 class="text-sm font-semibold text-white flex items-center gap-2 mb-4">
+                            <i class="ph-fill ph-headphones text-blue-400"></i> Paisaje Sonoro
+                        </h2>
+                        <div class="space-y-3">
+                            <button class="sound-btn w-full flex items-center justify-between p-3 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 transition-colors group" data-sound="rain">
+                                <div class="flex items-center gap-3 text-gray-300 group-hover:text-white">
+                                    <div class="w-8 h-8 rounded-lg bg-black/30 flex items-center justify-center"><i class="ph-fill ph-cloud-rain"></i></div>
+                                    <span class="text-sm font-medium">Lluvia en la ventana</span>
+                                </div>
+                                <i class="ph-fill ph-play-circle text-xl text-gray-500 group-hover:text-blue-400"></i>
+                            </button>
+                            <button class="sound-btn w-full flex items-center justify-between p-3 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 transition-colors group" data-sound="lofi">
+                                <div class="flex items-center gap-3 text-gray-300 group-hover:text-white">
+                                    <div class="w-8 h-8 rounded-lg bg-black/30 flex items-center justify-center"><i class="ph-fill ph-vinyl-record"></i></div>
+                                    <span class="text-sm font-medium">Lo-Fi Beats</span>
+                                </div>
+                                <i class="ph-fill ph-play-circle text-xl text-gray-500 group-hover:text-blue-400"></i>
+                            </button>
+                            <button class="sound-btn w-full flex items-center justify-between p-3 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 transition-colors group" data-sound="coffee">
+                                <div class="flex items-center gap-3 text-gray-300 group-hover:text-white">
+                                    <div class="w-8 h-8 rounded-lg bg-black/30 flex items-center justify-center"><i class="ph-fill ph-coffee"></i></div>
+                                    <span class="text-sm font-medium">Cafetería</span>
+                                </div>
+                                <i class="ph-fill ph-play-circle text-xl text-gray-500 group-hover:text-blue-400"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Control de Volumen Mockup -->
+                        <div class="mt-5 flex items-center gap-3 text-gray-400">
+                            <i class="ph-fill ph-speaker-low"></i>
+                            <div class="flex-1 h-1.5 bg-black/40 rounded-full overflow-hidden">
+                                <div class="h-full w-1/2 bg-blue-500 rounded-full"></div>
+                            </div>
+                            <i class="ph-fill ph-speaker-high"></i>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- COLUMNA CENTRAL: Temporizador Principal -->
+                <div class="lg:col-span-8 glass-card rounded-3xl p-8 flex flex-col items-center justify-center relative overflow-hidden h-full">
+                    <div class="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none"></div>
+                    
+                    <!-- Modos de Temporizador -->
+                    <div class="flex bg-black/40 p-1.5 rounded-2xl mb-10 z-10 border border-white/5">
+                        <button class="timer-mode-btn active px-6 py-2.5 rounded-xl text-sm font-semibold transition-all bg-indigo-500 text-white shadow-lg shadow-indigo-500/20" data-time="45">Deep Work</button>
+                        <button class="timer-mode-btn px-6 py-2.5 rounded-xl text-sm font-medium transition-all text-gray-400 hover:text-white" data-time="25">Pomodoro</button>
+                        <button class="timer-mode-btn px-6 py-2.5 rounded-xl text-sm font-medium transition-all text-gray-400 hover:text-white" data-time="5">Descanso</button>
+                    </div>
+
+                    <!-- Reloj SVG Central -->
+                    <div class="relative w-72 h-72 md:w-96 md:h-96 flex items-center justify-center z-10 shrink-0">
+                        <svg class="w-full h-full transform -rotate-90 drop-shadow-[0_0_25px_rgba(99,102,241,0.2)]" viewBox="0 0 200 200">
+                            <!-- Background Circle -->
+                            <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="6" />
+                            <!-- Progress Circle -->
+                            <circle id="main-timer-circle" cx="100" cy="100" r="90" fill="none" stroke="#6366f1" stroke-width="8" stroke-dasharray="565.48" stroke-dashoffset="0" stroke-linecap="round" class="transition-all duration-1000 ease-linear" />
+                        </svg>
+                        
+                        <div class="absolute flex flex-col items-center justify-center">
+                            <span id="main-timer-display" class="text-7xl font-bold text-white tracking-tighter" style="font-feature-settings: 'tnum';">45:00</span>
+                            <span id="timer-status-text" class="text-sm uppercase tracking-[0.3em] text-indigo-400 mt-2 font-medium">Enfoque Total</span>
+                        </div>
+                    </div>
+
+                    <!-- Controles Principales -->
+                    <div class="flex items-center gap-4 mt-12 z-10">
+                        <button id="btn-main-stop" class="w-14 h-14 rounded-2xl glass hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-red-400 transition-colors border border-white/5">
+                            <i class="ph-bold ph-arrow-counter-clockwise text-2xl"></i>
+                        </button>
+                        
+                        <button id="btn-main-start" class="px-12 py-4 rounded-2xl bg-indigo-500 hover:bg-indigo-600 hover:scale-105 text-white text-lg font-bold transition-all shadow-[0_0_30px_rgba(99,102,241,0.4)] flex items-center gap-2">
+                            <i class="ph-fill ph-play"></i> Iniciar Sesión
+                        </button>
+                        
+                        <button id="btn-log-distraction" class="w-14 h-14 rounded-2xl glass hover:bg-white/10 flex flex-col items-center justify-center text-gray-400 hover:text-orange-400 transition-colors border border-white/5 group relative" title="Registrar distracción">
+                            <i class="ph-bold ph-warning text-xl group-hover:-translate-y-1 transition-transform"></i>
+                            <span id="distraction-count" class="absolute bottom-1 text-[10px] font-bold">0</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Contenedor de Toasts -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- Script específico para esta vista -->
+     <script src="../js/modules/sidebar.js"></script>
+    <script type="module" src="../js/modules/deepWork.js"></script>
+</body>
+</html>

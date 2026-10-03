@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus OS | Biblioteca</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body class="antialiased selection:bg-amber-500 selection:text-white bg-[#050505]">
+    
+    <div class="bg-glow"></div>
+
+    <div class="h-screen flex">
+        <!-- SIDEBAR -->
+        <div id="sidebar-container"></div>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-10 relative flex flex-col h-full custom-scrollbar">
+            
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 shrink-0">
+                <div>
+                    <h1 class="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                        <i class="ph-fill ph-books text-amber-500"></i> Biblioteca de Conocimiento
+                    </h1>
+                    <p class="text-gray-400 text-sm mt-1">Rastrea tus lecturas, cursos y fuentes de aprendizaje activo.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="btn-add-resource" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold transition-all shadow-[0_0_15px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.5)] flex items-center gap-2">
+                        <i class="ph-bold ph-plus"></i> Nuevo Recurso
+                    </button>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 min-h-0">
+                
+                <!-- COLUMNA PRINCIPAL: Fuentes en progreso -->
+                <div class="xl:col-span-8 flex flex-col gap-6">
+                    
+                    <div class="glass-card rounded-3xl p-6 relative overflow-hidden flex flex-col flex-1">
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mt-20 -mr-20 pointer-events-none"></div>
+                        
+                        <div class="flex justify-between items-center mb-6 relative z-10 border-b border-white/5 pb-4">
+                            <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                                <i class="ph-fill ph-book-open text-amber-400"></i> En Progreso
+                            </h2>
+                            <div class="flex gap-2">
+                                <span class="px-3 py-1 rounded-lg bg-white/5 text-gray-300 text-xs font-medium cursor-pointer hover:bg-white/10 transition-colors border border-white/10">Todos</span>
+                                <span class="px-3 py-1 rounded-lg bg-white/5 text-gray-300 text-xs font-medium cursor-pointer hover:bg-white/10 transition-colors border border-white/10">Libros</span>
+                                <span class="px-3 py-1 rounded-lg bg-white/5 text-gray-300 text-xs font-medium cursor-pointer hover:bg-white/10 transition-colors border border-white/10">Cursos</span>
+                            </div>
+                        </div>
+
+                        <!-- Grid de Recursos Inyectados por JS -->
+                        <div id="library-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 overflow-y-auto pr-2 custom-scrollbar relative z-10">
+                            <p class="text-gray-500 text-sm text-center py-8 col-span-full">Cargando biblioteca...</p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- COLUMNA LATERAL: Estadísticas y Completados -->
+                <div class="xl:col-span-4 flex flex-col gap-6">
+                    
+                    <!-- Stats Resumen -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="glass-card rounded-2xl p-5 border-t-2 border-t-amber-500/50">
+                            <i class="ph-fill ph-check-circle text-2xl text-amber-400 mb-2"></i>
+                            <p class="text-3xl font-bold text-white mb-1" id="stat-completed">12</p>
+                            <p class="text-xs text-gray-400 uppercase tracking-wider font-medium">Completados</p>
+                        </div>
+                        <div class="glass-card rounded-2xl p-5 border-t-2 border-t-orange-500/50">
+                            <i class="ph-fill ph-files text-2xl text-orange-400 mb-2"></i>
+                            <p class="text-3xl font-bold text-white mb-1" id="stat-pages">3,450</p>
+                            <p class="text-xs text-gray-400 uppercase tracking-wider font-medium">Páginas Leídas</p>
+                        </div>
+                    </div>
+
+                    <!-- Últimos Completados -->
+                    <div class="glass-card rounded-3xl p-6 flex-1 flex flex-col">
+                        <h3 class="text-sm font-semibold text-white flex items-center gap-2 mb-4">
+                            <i class="ph-fill ph-trophy text-yellow-400"></i> Logros Recientes
+                        </h3>
+                        
+                        <div class="space-y-4 flex-1 overflow-y-auto custom-scrollbar" id="completed-container">
+                            <!-- Inyectado por JS -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: AGREGAR RECURSO -->
+    <!-- ========================================== -->
+    <div id="resource-modal" class="hidden fixed inset-0 bg-[#050505]/80 z-[60] flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="glass-card rounded-3xl p-6 w-full max-w-md border border-white/10 transform scale-95 transition-transform duration-300 relative overflow-hidden" id="resource-modal-content">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl -mt-10 -mr-10 pointer-events-none"></div>
+            
+            <h3 class="text-xl font-bold text-white mb-6 relative z-10 flex items-center gap-2">
+                <i class="ph-fill ph-bookmark-simple text-amber-400"></i> Nuevo Aprendizaje
+            </h3>
+            
+            <form id="form-resource" class="space-y-4 relative z-10">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Título del Libro o Curso</label>
+                    <input type="text" id="res-title" required placeholder="Ej: Hábitos Atómicos" class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-colors">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Autor / Plataforma</label>
+                        <input type="text" id="res-author" required placeholder="Ej: James Clear" class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-amber-500/50">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Tipo</label>
+                        <select id="res-type" class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-amber-500/50 appearance-none">
+                            <option value="book" class="bg-gray-900">📖 Libro</option>
+                            <option value="course" class="bg-gray-900">🎓 Curso</option>
+                            <option value="article" class="bg-gray-900">📄 Artículo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Total de Páginas / Módulos</label>
+                    <input type="number" id="res-total" required placeholder="Ej: 320" min="1" class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-amber-500/50">
+                </div>
+
+                <div class="flex gap-3 justify-end mt-8 pt-4 border-t border-white/5">
+                    <button type="button" id="btn-cancel-resource" class="px-5 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium">Cancelar</button>
+                    <button type="submit" id="btn-save-resource" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold transition-all shadow-[0_0_15px_rgba(245,158,11,0.3)]">Guardar en Biblioteca</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: ACTUALIZAR PROGRESO -->
+    <!-- ========================================== -->
+    <div id="progress-modal" class="hidden fixed inset-0 bg-[#050505]/80 z-[60] flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="glass-card rounded-3xl p-6 w-full max-w-sm border border-white/10 transform scale-95 transition-transform duration-300 relative" id="progress-modal-content">
+            <h3 class="text-lg font-bold text-white mb-2">Actualizar Progreso</h3>
+            <p id="progress-book-title" class="text-sm text-gray-400 mb-6 truncate">Título del libro</p>
+            
+            <div class="flex items-center gap-4 mb-6">
+                <input type="number" id="progress-current" class="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-2xl font-bold text-center text-white focus:outline-none focus:border-amber-500/50" min="0">
+                <span class="text-xl text-gray-500 font-medium">/</span>
+                <span id="progress-max" class="text-xl text-gray-400 font-medium w-16">300</span>
+            </div>
+
+            <div class="flex gap-3 justify-end">
+                <button type="button" id="btn-cancel-progress" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white transition-colors text-sm font-medium">Cancelar</button>
+                <button type="button" id="btn-save-progress" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold transition-all shadow-[0_0_15px_rgba(245,158,11,0.3)]">Actualizar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor de Toasts Dinámicos -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/modules/sidebar.js"></script>
+    <script type="module" src="../js/modules/library.js"></script>
+</body>
+</html>

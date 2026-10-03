@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus OS | ZenHabit Analytics</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body class="antialiased selection:bg-cyan-500 selection:text-white bg-[#050505] overflow-hidden">
+    
+    <div class="bg-glow"></div>
+
+    <div class="h-screen flex">
+        <!-- SIDEBAR -->
+        <div id="sidebar-container"></div>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-10 relative flex flex-col h-full custom-scrollbar">
+            
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 shrink-0">
+                <div>
+                    <h1 class="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                        <i class="ph-fill ph-leaf text-cyan-400"></i> ZenHabit Analytics
+                    </h1>
+                    <p class="text-gray-400 text-sm mt-1">Tu ecosistema de balance, consistencia y prevención de burnout.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-sm font-medium transition-colors flex items-center gap-2" id="btn-sync-data">
+                        <i class="ph ph-arrows-clockwise"></i> Sincronizar Datos
+                    </button>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0 pb-10">
+                
+                <!-- 1. Zen Score (Vitalidad) -->
+                <div class="lg:col-span-4 glass-card rounded-3xl p-8 relative overflow-hidden group flex flex-col items-center justify-center">
+                    <div class="absolute top-0 right-0 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl -mt-10 -mr-10 transition-all pointer-events-none"></div>
+                    
+                    <h2 class="text-sm font-semibold text-gray-300 mb-6 w-full text-center tracking-widest uppercase">Índice de Vitalidad</h2>
+                    
+                    <div class="relative w-48 h-48 flex items-center justify-center shrink-0 mb-6">
+                        <svg class="w-full h-full transform -rotate-90 drop-shadow-[0_0_15px_rgba(6,182,212,0.3)]" viewBox="0 0 120 120">
+                            <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="8" />
+                            <circle id="zen-score-circle" cx="60" cy="60" r="54" fill="none" stroke="#22d3ee" stroke-width="8" stroke-dasharray="339.29" stroke-dashoffset="339.29" stroke-linecap="round" class="transition-all duration-1500 ease-out" />
+                        </svg>
+                        <div class="absolute flex flex-col items-center">
+                            <span id="zen-score-display" class="text-5xl font-bold text-white tracking-tighter">0</span>
+                            <span class="text-[10px] text-cyan-400 mt-1 font-bold uppercase">Zen Score</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white/5 border border-white/5 p-4 rounded-2xl w-full">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-gray-400">Nivel de Estrés</span>
+                            <span class="text-xs font-bold text-emerald-400" id="stress-level-text">Bajo (Saludable)</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-black/40 rounded-full overflow-hidden">
+                            <div class="h-full bg-emerald-400 w-1/4 rounded-full shadow-[0_0_10px_rgba(52,211,153,0.5)]"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Insights & IA Gentle Reminders -->
+                <div class="lg:col-span-8 glass-card rounded-3xl p-6 relative overflow-hidden flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                            <i class="ph-fill ph-sparkle text-cyan-400"></i> Reflexiones de tu Ritmo
+                        </h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="insights-container">
+                        <!-- Generados por JS -->
+                    </div>
+                </div>
+
+                <!-- 3. Jardín de Hábitos (Heatmap) -->
+                <div class="lg:col-span-12 glass-card rounded-3xl p-6 lg:p-8">
+                    <div class="flex justify-between items-end mb-8">
+                        <div>
+                            <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                                <i class="ph-fill ph-plant text-emerald-400"></i> Jardín de Consistencia
+                            </h2>
+                            <p class="text-sm text-gray-400 mt-1">Tu panorama de los últimos 90 días. Los días en blanco también son parte del crecimiento.</p>
+                        </div>
+                        <div class="hidden sm:flex items-center gap-2 text-xs text-gray-500">
+                            <span>Descanso</span>
+                            <div class="w-3 h-3 rounded-sm bg-white/5 border border-white/10"></div>
+                            <div class="w-3 h-3 rounded-sm bg-cyan-500/20 border border-cyan-500/20"></div>
+                            <div class="w-3 h-3 rounded-sm bg-cyan-500/50 border border-cyan-500/30"></div>
+                            <div class="w-3 h-3 rounded-sm bg-cyan-400 border border-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)]"></div>
+                            <span>Flujo Intenso</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Contenedor del Heatmap -->
+                    <div class="w-full overflow-x-auto pb-4 custom-scrollbar">
+                        <div id="heatmap-container" class="flex gap-1.5 min-w-max">
+                            <!-- Columnas inyectadas por JS -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Contenedor de Toasts Dinámicos -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/modules/sidebar.js"></script>
+    <script type="module" src="../js/modules/zenHabits.js"></script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus OS | Árbol de Potencial Humano</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    
+    <style>
+        /* Estilos Específicos del Canvas APH */
+        .tree-viewport { 
+            cursor: grab; 
+            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px); 
+            background-size: 40px 40px;
+        }
+        .tree-viewport:active { cursor: grabbing; }
+        .tree-canvas { transform-origin: 0 0; }
+        
+        .node {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+        }
+        .node:hover { z-index: 20; transform: translate(-50%, -50%) scale(1.1); }
+        
+        /* Conectores SVG */
+        .svg-layer {
+            position: absolute;
+            top: -5000px; left: -5000px;
+            width: 10000px; height: 10000px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .tree-link { transition: stroke 0.4s, stroke-width 0.4s; }
+        
+        /* Tipografía Sci-Fi para niveles */
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+    </style>
+</head>
+<body class="antialiased selection:bg-indigo-500 selection:text-white bg-[#050505] overflow-hidden">
+    
+    <div class="bg-glow"></div>
+
+    <div class="h-screen flex">
+        <!-- SIDEBAR -->
+        <div id="sidebar-container"></div>
+
+        <!-- MAIN CONTENT (Canvas Área) -->
+        <main class="flex-1 relative flex flex-col h-full bg-[#050505]">
+            
+            <!-- Floating Header -->
+            <header class="absolute top-6 left-6 right-6 z-30 flex justify-between items-start pointer-events-none">
+                <div class="glass p-4 rounded-2xl border border-white/10 pointer-events-auto shadow-2xl">
+                    <h1 class="text-2xl font-bold text-white tracking-tight flex items-center gap-3">
+                        <i class="ph-fill ph-brain text-indigo-500"></i> Matriz APH
+                    </h1>
+                    <p class="text-gray-400 text-xs mt-1">Mapa de evolución cognitiva y estructural</p>
+                </div>
+                
+                <!-- Stats / Controls -->
+                <div class="glass p-2 rounded-2xl border border-white/10 flex gap-2 pointer-events-auto shadow-2xl">
+                    <button class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors" title="Mostrar/Ocultar ramas bloqueadas" id="btn-toggle-locked">
+                        <i class="ph-fill ph-eye"></i>
+                    </button>
+                    <div class="w-px bg-white/10 my-2 mx-1"></div>
+                    <button class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors" onclick="window.aphZoomIn()">
+                        <i class="ph-bold ph-plus"></i>
+                    </button>
+                    <button class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors" onclick="window.aphZoomOut()">
+                        <i class="ph-bold ph-minus"></i>
+                    </button>
+                    <button class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors" onclick="window.aphResetView()" title="Centrar al origen">
+                        <i class="ph-bold ph-crosshair"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- TREE VIEWPORT (Canvas Mapeable) -->
+            <div class="tree-viewport w-full h-full relative overflow-hidden" id="viewport">
+                <div class="absolute inset-0 z-0 pointer-events-none" style="box-shadow: inset 0 0 150px rgba(0,0,0,0.9);"></div>
+                
+                <div class="tree-canvas absolute top-1/2 left-1/2 z-10" id="canvas">
+                    <!-- SVG para las líneas conectoras -->
+                    <svg class="svg-layer" id="svg-connections"></svg>
+                    <!-- Nodos HTML -->
+                    <div id="nodes-container"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: DETALLES DE LA HABILIDAD -->
+    <!-- ========================================== -->
+    <div id="skill-modal" class="hidden fixed inset-0 bg-[#050505]/80 z-[60] flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="glass-card rounded-3xl p-8 w-full max-w-md border border-white/10 transform scale-95 transition-transform duration-300 relative overflow-hidden" id="skill-modal-content">
+            <div id="modal-glow" class="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl -mt-10 -mr-10 pointer-events-none opacity-20"></div>
+            
+            <div class="flex justify-between items-start mb-6 relative z-10">
+                <div>
+                    <span id="modal-skill-status" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3 inline-block">Estado</span>
+                    <h3 id="modal-skill-title" class="text-2xl font-bold text-white mb-1">Nombre Habilidad</h3>
+                    <p id="modal-skill-parent" class="text-sm text-gray-500">Rama: Origen</p>
+                </div>
+                <button id="btn-close-skill" class="text-gray-500 hover:text-white transition-colors p-2 bg-white/5 rounded-xl hover:bg-white/10">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="relative z-10 space-y-6">
+                <!-- Nivel Visual -->
+                <div class="bg-black/30 border border-white/5 rounded-2xl p-5 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Nivel Actual</p>
+                        <p class="font-orbitron text-3xl font-bold text-white" id="modal-skill-level">0<span class="text-gray-600 text-lg">/10</span></p>
+                    </div>
+                    <div class="w-16 h-16 rounded-full border-4 flex items-center justify-center" id="modal-level-ring">
+                        <i class="ph-fill ph-star text-2xl" id="modal-level-icon"></i>
+                    </div>
+                </div>
+
+                <p id="modal-skill-desc" class="text-gray-400 text-sm leading-relaxed">
+                    Descripción de la habilidad y requisitos para desbloquear el siguiente nivel.
+                </p>
+
+                <!-- Acciones -->
+                <button id="btn-upgrade-skill" class="w-full py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-arrow-fat-up"></i> Entrenar Habilidad
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toasts -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/modules/sidebar.js"></script>
+    <script type="module" src="../js/modules/aph.js"></script>
+</body>
+</html>

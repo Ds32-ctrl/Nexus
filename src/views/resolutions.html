@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus OS | Micro Resoluciones</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body class="antialiased selection:bg-purple-500 selection:text-white bg-[#050505]">
+    
+    <div class="bg-glow"></div>
+
+    <div class="h-screen flex">
+        <!-- SIDEBAR -->
+        <div id="sidebar-container"></div>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-10 relative flex flex-col h-full custom-scrollbar">
+            
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 shrink-0">
+                <div>
+                    <h1 class="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                        <i class="ph-fill ph-check-square-offset text-purple-500"></i> Micro Resoluciones
+                    </h1>
+                    <p class="text-gray-400 text-sm mt-1">Pequeñas acciones diarias que construyen grandes resultados.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="btn-open-task-modal" class="px-5 py-2.5 rounded-xl bg-purple-500 hover:bg-purple-600 text-white text-sm font-bold transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:shadow-[0_0_25px_rgba(168,85,247,0.5)] flex items-center gap-2">
+                        <i class="ph-bold ph-plus"></i> Nueva Resolución
+                    </button>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 min-h-0">
+                
+                <!-- COLUMNA PRINCIPAL: Lista de Tareas -->
+                <div class="xl:col-span-8 flex flex-col gap-6">
+                    
+                    <div class="glass-card rounded-3xl p-6 md:p-8 flex-1 flex flex-col relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl -mt-20 -mr-20 transition-all group-hover:bg-purple-500/20 pointer-events-none"></div>
+                        
+                        <div class="flex justify-between items-center mb-6 relative z-10">
+                            <h2 class="text-lg font-semibold text-white">Plan de Hoy</h2>
+                            <span id="progress-text" class="text-sm font-medium text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20">0% Completado</span>
+                        </div>
+                        
+                        <!-- Barra de progreso general -->
+                        <div class="w-full h-2 bg-white/5 rounded-full mb-8 overflow-hidden relative z-10">
+                            <div id="progress-bar" class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full w-[0%] transition-all duration-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
+                        </div>
+
+                        <!-- Contenedor de Tareas -->
+                        <div id="tasks-container" class="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar relative z-10">
+                            <p class="text-gray-500 text-sm text-center py-8">Cargando tus resoluciones...</p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- COLUMNA LATERAL: Estadísticas y Rachas -->
+                <div class="xl:col-span-4 flex flex-col gap-6">
+                    
+                    <!-- Widget de Consistencia -->
+                    <div class="glass-card rounded-3xl p-6 relative overflow-hidden">
+                        <h3 class="text-sm font-semibold text-white flex items-center gap-2 mb-6">
+                            <i class="ph-fill ph-chart-line-up text-indigo-400"></i> Consistencia Semanal
+                        </h3>
+                        
+                        <!-- Mini Heatmap (Mockup visual) -->
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="flex flex-col items-center gap-2">
+                                <span class="text-[10px] text-gray-500 font-medium">L</span>
+                                <div class="w-8 h-8 rounded-lg bg-purple-500 border border-purple-400 flex items-center justify-center text-white shadow-[0_0_10px_rgba(168,85,247,0.4)]"><i class="ph-bold ph-check text-sm"></i></div>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <span class="text-[10px] text-gray-500 font-medium">M</span>
+                                <div class="w-8 h-8 rounded-lg bg-purple-500 border border-purple-400 flex items-center justify-center text-white shadow-[0_0_10px_rgba(168,85,247,0.4)]"><i class="ph-bold ph-check text-sm"></i></div>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <span class="text-[10px] text-gray-500 font-medium">M</span>
+                                <div class="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-gray-600"></div>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <span class="text-[10px] text-gray-500 font-medium">J</span>
+                                <div class="w-8 h-8 rounded-lg bg-purple-500 border border-purple-400 flex items-center justify-center text-white shadow-[0_0_10px_rgba(168,85,247,0.4)]"><i class="ph-bold ph-check text-sm"></i></div>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <span class="text-[10px] text-white font-bold">V</span>
+                                <div class="w-8 h-8 rounded-lg bg-white/10 border border-purple-500/50 flex items-center justify-center text-purple-400 animate-pulse relative">
+                                    <div class="absolute inset-0 bg-purple-500/20 rounded-lg"></div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <span class="text-[10px] text-gray-500 font-medium">S</span>
+                                <div class="w-8 h-8 rounded-lg border border-dashed border-white/10"></div>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <span class="text-[10px] text-gray-500 font-medium">D</span>
+                                <div class="w-8 h-8 rounded-lg border border-dashed border-white/10"></div>
+                            </div>
+                        </div>
+
+                        <div class="bg-black/30 p-4 rounded-2xl border border-white/5 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-gray-400 mb-1">Racha Actual</p>
+                                <p class="text-2xl font-bold text-white flex items-center gap-2">
+                                    3 <span class="text-sm font-medium text-gray-500">días</span> <i class="ph-fill ph-fire text-orange-400"></i>
+                                </p>
+                            </div>
+                            <div class="h-10 w-px bg-white/10"></div>
+                            <div>
+                                <p class="text-xs text-gray-400 mb-1">Mejor Racha</p>
+                                <p class="text-2xl font-bold text-white flex items-center gap-2">
+                                    14 <span class="text-sm font-medium text-gray-500">días</span> <i class="ph-fill ph-trophy text-yellow-400"></i>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Widget de Distribución -->
+                    <div class="glass-card rounded-3xl p-6">
+                        <h3 class="text-sm font-semibold text-white flex items-center gap-2 mb-4">
+                            <i class="ph-fill ph-pie-chart text-blue-400"></i> Distribución de Hábitos
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2 text-sm text-gray-300">
+                                    <div class="w-3 h-3 rounded-full bg-orange-400"></div> Desarrollo
+                                </div>
+                                <span class="text-sm font-medium text-white" id="stat-code">0</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2 text-sm text-gray-300">
+                                    <div class="w-3 h-3 rounded-full bg-blue-400"></div> Lectura
+                                </div>
+                                <span class="text-sm font-medium text-white" id="stat-book">0</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2 text-sm text-gray-300">
+                                    <div class="w-3 h-3 rounded-full bg-pink-400"></div> Salud & Fitness
+                                </div>
+                                <span class="text-sm font-medium text-white" id="stat-health">0</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2 text-sm text-gray-300">
+                                    <div class="w-3 h-3 rounded-full bg-emerald-400"></div> Admin / Otros
+                                </div>
+                                <span class="text-sm font-medium text-white" id="stat-folder">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: CREAR NUEVA TAREA -->
+    <!-- ========================================== -->
+    <div id="task-modal" class="hidden fixed inset-0 bg-[#050505]/80 z-[60] flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="glass-card rounded-3xl p-6 w-full max-w-md border border-white/10 transform scale-95 transition-transform duration-300 relative overflow-hidden" id="task-modal-content">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mt-10 -mr-10 pointer-events-none"></div>
+            
+            <h3 class="text-xl font-bold text-white mb-6 relative z-10 flex items-center gap-2">
+                <i class="ph-fill ph-plus-circle text-purple-400"></i> Nueva Resolución
+            </h3>
+            
+            <div class="space-y-4 relative z-10">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">¿Qué acción atómica realizarás?</label>
+                    <input type="text" id="new-task-title" placeholder="Ej: Leer 20 páginas, Meditar 10 min..." class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-purple-500/50 transition-colors">
+                </div>
+                
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Categoría</label>
+                    <select id="new-task-category" class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-purple-500/50 appearance-none transition-colors">
+                        <option value="code" class="bg-gray-900">💻 Desarrollo & Código</option>
+                        <option value="book-open" class="bg-gray-900">📚 Lectura & Estudio</option>
+                        <option value="barbell" class="bg-gray-900">💪 Salud & Fitness</option>
+                        <option value="folder" class="bg-gray-900">📁 Administración & Vida</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex gap-3 justify-end mt-8 relative z-10">
+                <button id="btn-cancel-task" class="px-5 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium">Cancelar</button>
+                <button id="btn-save-task" class="px-5 py-2.5 rounded-xl bg-purple-500 hover:bg-purple-600 text-white text-sm font-bold transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)]">Guardar Tarea</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor de Toasts Dinámicos -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/modules/sidebar.js"></script>
+    <script type="module" src="../js/modules/resolutions.js"></script>
+</body>
+</html>

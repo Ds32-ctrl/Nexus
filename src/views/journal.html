@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus OS | Diario & Reflexión</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body class="antialiased selection:bg-pink-500 selection:text-white bg-[#050505]">
+    
+    <div class="bg-glow"></div>
+
+    <div class="h-screen flex">
+        <!-- SIDEBAR -->
+        <div id="sidebar-container"></div>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-10 relative flex flex-col h-full custom-scrollbar">
+            
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 shrink-0">
+                <div>
+                    <h1 class="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                        <i class="ph-fill ph-book-open-text text-pink-500"></i> Diario & Reflexión
+                    </h1>
+                    <p class="text-gray-400 text-sm mt-1">Registra tus pensamientos, aprendizajes y estado emocional.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="px-4 py-2 rounded-xl bg-white/5 border border-white/10 flex items-center gap-2">
+                        <i class="ph-fill ph-fire text-orange-400 text-lg"></i>
+                        <span class="text-white text-sm font-medium">Racha: <span id="streak-count">12</span> días</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 min-h-0">
+                
+                <!-- COLUMNA IZQUIERDA: Formulario de Nueva Entrada y Stats -->
+                <div class="xl:col-span-5 flex flex-col gap-6">
+                    
+                    <!-- Tarjeta de Nueva Entrada -->
+                    <div class="glass-card rounded-3xl p-6 relative overflow-hidden group">
+                        <div class="absolute top-0 left-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl -mt-20 -ml-20 transition-all group-hover:bg-pink-500/20 pointer-events-none"></div>
+                        
+                        <div class="relative z-10">
+                            <h2 class="text-lg font-semibold text-white mb-4">¿Qué hay en tu mente hoy?</h2>
+                            
+                            <!-- Selector de Estado de Ánimo -->
+                            <div class="mb-5">
+                                <p class="text-sm text-gray-400 mb-2">Estado de ánimo:</p>
+                                <div id="mood-selector" class="flex gap-3">
+                                    <button data-mood="excellent" class="mood-btn w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-green-500/20 hover:border-green-500/30 transition-all text-2xl grayscale hover:grayscale-0 focus:outline-none focus:ring-2 focus:ring-green-500/50" title="Excelente">😄</button>
+                                    <button data-mood="good" class="mood-btn w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-blue-500/20 hover:border-blue-500/30 transition-all text-2xl grayscale hover:grayscale-0 focus:outline-none focus:ring-2 focus:ring-blue-500/50" title="Bien">🙂</button>
+                                    <button data-mood="neutral" class="mood-btn w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-gray-500/20 hover:border-gray-500/30 transition-all text-2xl grayscale hover:grayscale-0 focus:outline-none focus:ring-2 focus:ring-gray-500/50" title="Neutral">😐</button>
+                                    <button data-mood="bad" class="mood-btn w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-red-500/20 hover:border-red-500/30 transition-all text-2xl grayscale hover:grayscale-0 focus:outline-none focus:ring-2 focus:ring-red-500/50" title="Mal">😫</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Área de Texto -->
+                            <textarea id="journal-content" class="w-full bg-black/30 border border-white/10 rounded-2xl p-4 text-white placeholder-gray-500 focus:outline-none focus:border-pink-500/50 focus:ring-1 focus:ring-pink-500/50 transition-all resize-none h-48 custom-scrollbar" placeholder="Escribe tus reflexiones, ideas o gratitudes del día..."></textarea>
+                            
+                            <!-- Botones de Acción -->
+                            <div class="flex items-center justify-between mt-4">
+                                <div class="flex gap-2">
+                                    <button class="text-gray-400 hover:text-pink-400 p-2 rounded-lg hover:bg-white/5 transition-colors" title="Añadir etiqueta"><i class="ph ph-tag text-xl"></i></button>
+                                    <button class="text-gray-400 hover:text-pink-400 p-2 rounded-lg hover:bg-white/5 transition-colors" title="Añadir imagen"><i class="ph ph-image text-xl"></i></button>
+                                </div>
+                                <button id="btn-save-entry" class="px-6 py-2.5 rounded-xl bg-pink-500 hover:bg-pink-600 text-white text-sm font-bold transition-all shadow-[0_0_15px_rgba(236,72,153,0.3)] hover:shadow-[0_0_25px_rgba(236,72,153,0.5)] flex items-center gap-2">
+                                    <i class="ph-bold ph-paper-plane-right"></i> Guardar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pequeño Widget de Análisis -->
+                    <div class="glass-card rounded-3xl p-6">
+                        <h3 class="text-sm font-semibold text-white flex items-center gap-2 mb-4">
+                            <i class="ph-fill ph-chart-bar text-purple-400"></i> Resumen del Mes
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-gray-400">Entradas totales</span>
+                                <span class="text-white font-bold" id="total-entries-count">0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-gray-400">Emoción principal</span>
+                                <span class="text-white font-bold flex items-center gap-2">Bien 🙂</span>
+                            </div>
+                            <div class="w-full h-2 bg-white/5 rounded-full overflow-hidden flex">
+                                <div class="h-full bg-green-400 w-1/4" title="Excelente"></div>
+                                <div class="h-full bg-blue-400 w-1/2" title="Bien"></div>
+                                <div class="h-full bg-gray-400 w-1/6" title="Neutral"></div>
+                                <div class="h-full bg-red-400 w-1/12" title="Mal"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- COLUMNA DERECHA: Línea de Tiempo (Timeline) -->
+                <div class="xl:col-span-7 glass-card rounded-3xl p-6 flex flex-col h-full min-h-[500px]">
+                    <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-4 shrink-0">
+                        <h2 class="text-lg font-semibold text-white">Historial de Reflexiones</h2>
+                        <div class="flex gap-2">
+                            <button class="text-gray-400 hover:text-white text-sm px-3 py-1 rounded-lg hover:bg-white/5 transition-colors">Todos</button>
+                            <button class="text-gray-400 hover:text-white text-sm px-3 py-1 rounded-lg hover:bg-white/5 transition-colors"><i class="ph ph-star"></i> Destacados</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Contenedor del Timeline (Inyectado por JS) -->
+                    <div id="journal-timeline" class="flex-1 overflow-y-auto pr-4 space-y-6 custom-scrollbar relative pl-2">
+                        <!-- Línea vertical de fondo -->
+                        <div class="absolute left-[15px] top-4 bottom-4 w-px bg-white/10 z-0"></div>
+                        
+                        <p class="text-gray-500 text-sm text-center py-8 relative z-10 bg-[#050505]/50 rounded-xl">Cargando diario...</p>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Contenedor de Toasts Dinámicos -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- Modal para ver entrada completa -->
+    <div id="view-entry-modal" class="hidden fixed inset-0 bg-[#050505]/80 z-[60] flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="glass-card rounded-3xl p-6 lg:p-8 w-full max-w-2xl border border-white/10 transform scale-95 transition-transform duration-300 relative overflow-hidden" id="view-entry-content">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full blur-3xl -mt-10 -mr-10 pointer-events-none"></div>
+            
+            <div class="flex justify-between items-start mb-6 relative z-10 border-b border-white/10 pb-4">
+                <div>
+                    <h3 id="modal-entry-date" class="text-xl font-bold text-white mb-1">Fecha</h3>
+                    <p id="modal-entry-mood" class="text-sm text-gray-400 flex items-center gap-2">Estado de ánimo</p>
+                </div>
+                <button id="btn-close-entry" class="text-gray-500 hover:text-white transition-colors p-2 bg-white/5 rounded-xl hover:bg-white/10">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+            
+            <div id="modal-entry-text" class="text-gray-300 text-base leading-relaxed space-y-4 relative z-10 whitespace-pre-wrap max-h-[50vh] overflow-y-auto custom-scrollbar pr-2">
+                <!-- Contenido dinámico -->
+            </div>
+            
+            <div class="mt-8 flex justify-end gap-3 relative z-10 pt-4 border-t border-white/5">
+                <button id="btn-delete-entry" class="px-4 py-2 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors text-sm font-medium flex items-center gap-2">
+                    <i class="ph ph-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/modules/sidebar.js"></script>
+    <script type="module" src="../js/modules/journal.js"></script>
+</body>
+</html>
