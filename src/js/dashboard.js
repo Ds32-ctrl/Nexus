@@ -13,20 +13,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     // AUTENTICACIÓN Y SESIÓN
     // ==========================================
     let userId = 'default-user-id';
-    
     try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        if (session && session.user) {
-            userId = session.user.id;
-        } else if (error) {
-            console.warn("No hay sesión activa.");
-        }
+        if (session && session.user) userId = session.user.id;
     } catch (e) {
-        console.warn("Usando fallback de sesión local (Supabase offline o sin configurar).");
+        console.warn("Modo local activado.");
     }
 
     // ==========================================
-    // CONTROLADOR DE UI (Toasts & Dynamic Modals)
+    // CONTROLADOR DE UI AVANZADO
     // ==========================================
     const UIController = {
         showToast(message, type = 'success') {
@@ -39,51 +34,59 @@ document.addEventListener('DOMContentLoaded', async () => {
                 warning: '<i class="ph-fill ph-warning-circle text-orange-400 text-xl"></i>',
                 error: '<i class="ph-fill ph-x-circle text-red-400 text-xl"></i>'
             };
-            
-            const borders = {
-                success: 'border-emerald-500/20',
-                info: 'border-blue-500/20',
-                warning: 'border-orange-500/20',
-                error: 'border-red-500/20'
-            };
+            const borders = { success: 'border-emerald-500/20', info: 'border-blue-500/20', warning: 'border-orange-500/20', error: 'border-red-500/20' };
 
             const toast = document.createElement('div');
-            toast.className = `flex items-center gap-3 px-4 py-3 rounded-2xl glass border ${borders[type]} transform translate-y-10 opacity-0 transition-all duration-300 shadow-lg pointer-events-auto`;
-            toast.innerHTML = `
-                ${icons[type] || icons.info}
-                <p class="text-sm font-medium text-white">${message}</p>
-            `;
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-2xl glass border ${borders[type]} transform translate-y-10 opacity-0 transition-all duration-300 shadow-lg pointer-events-auto mt-2`;
+            toast.innerHTML = `${icons[type]} <p class="text-sm font-medium text-white">${message}</p>`;
 
             container.appendChild(toast);
             
-            // Forzar reflow para que la animación CSS se ejecute
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    toast.classList.remove('translate-y-10', 'opacity-0');
-                });
-            });
-
-            // Autodestrucción del toast
+            requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0')));
             setTimeout(() => {
                 toast.classList.add('translate-y-10', 'opacity-0');
-                setTimeout(() => toast.remove(), 300); // Esperar a que termine la transición
+                setTimeout(() => toast.remove(), 300);
             }, 3500);
         },
 
-        openDynamicModal(title, iconHtml, contentHtml, themeColor = 'bg-indigo-500') {
+        openDynamicModal(title, iconHtml, contentHtml, themeColor = 'bg-indigo-500', confirmText = 'Aceptar', onConfirm = null) {
             const modal = document.getElementById('dynamic-modal');
             const modalContent = document.getElementById('dynamic-modal-content');
             const titleEl = document.getElementById('dynamic-modal-title');
             const bodyEl = document.getElementById('dynamic-modal-body');
             const glowEl = document.getElementById('dynamic-modal-glow');
-            const btnConfirm = document.getElementById('btn-confirm-dynamic-modal');
+            
+            let btnConfirm = document.getElementById('btn-confirm-dynamic-modal');
+
+            // Clonar para limpiar Event Listeners anteriores
+            const newBtnConfirm = btnConfirm.cloneNode(true);
+            btnConfirm.parentNode.replaceChild(newBtnConfirm, btnConfirm);
+            btnConfirm = newBtnConfirm;
 
             if (!modal) return;
 
             titleEl.innerHTML = `${iconHtml} ${title}`;
             bodyEl.innerHTML = contentHtml;
             glowEl.className = `absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -mt-10 -mr-10 opacity-20 pointer-events-none ${themeColor}`;
+            
             btnConfirm.className = `px-5 py-2.5 rounded-xl ${themeColor} hover:brightness-110 text-white text-sm font-medium transition-all`;
+            btnConfirm.textContent = confirmText;
+
+            // Manejador de confirmación dinámica
+            btnConfirm.addEventListener('click', async () => {
+                const originalText = btnConfirm.innerHTML;
+                btnConfirm.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i>';
+                btnConfirm.disabled = true;
+
+                if (onConfirm) {
+                    await onConfirm();
+                } else {
+                    this.closeDynamicModal();
+                }
+
+                btnConfirm.innerHTML = originalText;
+                btnConfirm.disabled = false;
+            });
 
             modal.classList.remove('hidden');
             setTimeout(() => {
@@ -96,16 +99,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const modal = document.getElementById('dynamic-modal');
             const modalContent = document.getElementById('dynamic-modal-content');
             if (!modal) return;
-
             modal.classList.add('opacity-0');
             modalContent.classList.add('scale-95');
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
     };
 
-    // Cerrar el modal dinámico con sus respectivos botones
-    document.getElementById('btn-close-dynamic-modal')?.addEventListener('click', UIController.closeDynamicModal);
-    document.getElementById('btn-confirm-dynamic-modal')?.addEventListener('click', UIController.closeDynamicModal);
+    document.getElementById('btn-close-dynamic-modal')?.addEventListener('click', () => UIController.closeDynamicModal());
 
     // ==========================================
     // 0. FECHA DINÁMICA
@@ -118,50 +118,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ==========================================
-    // 1. SISTEMA DE MICRO RESOLUCIONES (CRUD)
+    // 1. MICRO RESOLUCIONES (CRUD REAL)
     // ==========================================
     const tasksContainer = document.getElementById('tasks-container');
     const progressBar = document.getElementById('progress-bar');
     const progressText = document.getElementById('progress-text');
-    const btnOpenTaskModal = document.getElementById('btn-open-task-modal');
-    const taskModal = document.getElementById('task-modal');
-    const btnCancelTask = document.getElementById('btn-cancel-task');
-    const btnSaveTask = document.getElementById('btn-save-task');
     let currentTasks = [];
 
     async function loadTasks() {
         try {
-            const { data, error } = await supabase
-                .from('tasks')
-                .select('*')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false });
-                
-            if (error) throw error;
-            currentTasks = data || [];
-        } catch (error) {
-            // Datos de prueba si no hay base de datos
-            currentTasks = [
-                { id: 1, title: 'Revisar finanzas en Excel', category: 'folder', completed: true },
-                { id: 2, title: 'Leer "Padre Rico, Padre Pobre" (20 págs)', category: 'book-open', completed: false }
-            ];
-        }
+            const { data, error } = await supabase.from('tasks').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+            if (!error) currentTasks = data || [];
+        } catch (error) { console.warn("Usando tareas en memoria local."); }
         renderTasks();
-        updateProgressVisuals();
     }
 
     function renderTasks() {
         if (!tasksContainer) return;
-        const addButtonHTML = btnOpenTaskModal ? btnOpenTaskModal.outerHTML : '';
+        const btnAddHtml = document.getElementById('btn-open-task-modal')?.outerHTML || '';
         tasksContainer.innerHTML = '';
 
+        const categoryStyles = {
+            'code': { icon: 'ph-code', color: 'text-orange-400' },
+            'book-open': { icon: 'ph-book-open', color: 'text-blue-400' },
+            'folder': { icon: 'ph-folder', color: 'text-emerald-500/50' },
+            'barbell': { icon: 'ph-barbell', color: 'text-pink-400' }
+        };
+
         currentTasks.forEach(task => {
-            const categoryStyles = {
-                'code': { icon: 'ph-code', color: 'text-orange-400' },
-                'book-open': { icon: 'ph-book-open', color: 'text-blue-400' },
-                'folder': { icon: 'ph-folder', color: 'text-emerald-500/50' },
-                'barbell': { icon: 'ph-barbell', color: 'text-pink-400' }
-            };
             const style = categoryStyles[task.category] || { icon: 'ph-check-circle', color: 'text-gray-400' };
             const isChecked = task.completed ? 'checked' : '';
             const titleClass = task.completed ? 'text-gray-500 line-through' : 'text-white group-hover:text-purple-300';
@@ -169,10 +153,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const taskHTML = `
                 <label class="cursor-pointer group flex items-start justify-between gap-3 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-purple-500/30 transition-all relative overflow-hidden" data-task-id="${task.id}">
                     <div class="flex items-start gap-3">
-                        <input type="checkbox" ${isChecked} class="task-checkbox mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-900 accent-purple-500 transition-colors">
+                        <input type="checkbox" ${isChecked} class="task-checkbox mt-1 w-5 h-5 rounded border-gray-600 bg-black/50 text-purple-500 focus:ring-purple-500 accent-purple-500 transition-all cursor-pointer">
                         <div>
                             <p class="task-title text-sm font-medium transition-colors ${titleClass}">${task.title}</p>
-                            <p class="text-xs text-gray-500 mt-1 flex items-center gap-1"><i class="ph-fill ${style.icon} ${style.color}"></i> ${task.category || 'General'}</p>
+                            <p class="text-xs text-gray-500 mt-1 flex items-center gap-1"><i class="ph-fill ${style.icon} ${style.color}"></i> ${task.category}</p>
                         </div>
                     </div>
                     <button class="delete-task-btn text-gray-600 hover:text-red-400 transition-colors p-1" title="Eliminar"><i class="ph-fill ph-trash text-base"></i></button>
@@ -181,123 +165,51 @@ document.addEventListener('DOMContentLoaded', async () => {
             tasksContainer.insertAdjacentHTML('beforeend', taskHTML);
         });
 
-        if (addButtonHTML) tasksContainer.insertAdjacentHTML('beforeend', addButtonHTML);
+        if (btnAddHtml) tasksContainer.insertAdjacentHTML('beforeend', btnAddHtml);
         attachTaskEvents();
-        
-        // Re-adjuntar el evento al botón "+" recién inyectado
-        document.getElementById('btn-open-task-modal')?.addEventListener('click', openTaskModal);
+        updateProgressVisuals();
     }
 
     function attachTaskEvents() {
-        if (!tasksContainer) return;
-        
-        // Completar/Descompletar tarea
+        // Toggle Task
         tasksContainer.querySelectorAll('.task-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', async (e) => {
-                const label = e.target.closest('label');
-                const taskId = label.dataset.taskId;
+                const taskId = e.target.closest('label').dataset.taskId;
                 const isCompleted = e.target.checked;
                 
                 const taskIndex = currentTasks.findIndex(t => t.id == taskId);
                 if (taskIndex > -1) currentTasks[taskIndex].completed = isCompleted;
-                
                 renderTasks();
-                updateProgressVisuals();
                 
-                try { 
-                    await supabase.from('tasks').update({ completed: isCompleted }).eq('id', taskId); 
-                } catch (err) {
-                    console.warn("Actualización en DB falló, mantenido en UI local.");
-                }
+                try { await supabase.from('tasks').update({ completed: isCompleted }).eq('id', taskId); } catch (err) {}
             });
         });
 
-        // Eliminar tarea
+        // Delete Task
         tasksContainer.querySelectorAll('.delete-task-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                e.preventDefault(); 
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 const taskId = e.target.closest('label').dataset.taskId;
-                
                 currentTasks = currentTasks.filter(t => t.id != taskId);
                 renderTasks();
-                updateProgressVisuals();
                 UIController.showToast('Tarea eliminada', 'info');
-                
-                try { 
-                    await supabase.from('tasks').delete().eq('id', taskId); 
-                } catch (err) {
-                    console.warn("Eliminación en DB falló, borrado en UI local.");
-                }
+                try { await supabase.from('tasks').delete().eq('id', taskId); } catch (err) {}
             });
+        });
+
+        // Open Modal (Rebind)
+        document.getElementById('btn-open-task-modal')?.addEventListener('click', () => {
+            document.getElementById('task-modal').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('task-modal').classList.remove('opacity-0');
+                document.getElementById('task-modal-content').classList.remove('scale-95');
+                document.getElementById('new-task-title').focus();
+            }, 10);
         });
     }
 
-    function openTaskModal() {
-        if (!taskModal) return;
-        taskModal.classList.remove('hidden');
-        setTimeout(() => {
-            taskModal.classList.remove('opacity-0');
-            document.getElementById('task-modal-content')?.classList.remove('scale-95');
-        }, 10);
-    }
-
-    function closeTaskModal() {
-        if (!taskModal) return;
-        taskModal.classList.add('opacity-0');
-        document.getElementById('task-modal-content')?.classList.add('scale-95');
-        setTimeout(() => {
-            taskModal.classList.add('hidden');
-            const titleInput = document.getElementById('new-task-title');
-            if (titleInput) titleInput.value = '';
-        }, 300);
-    }
-
-    btnOpenTaskModal?.addEventListener('click', openTaskModal);
-    btnCancelTask?.addEventListener('click', closeTaskModal);
-
-    btnSaveTask?.addEventListener('click', async () => {
-        const titleInput = document.getElementById('new-task-title');
-        const title = titleInput ? titleInput.value.trim() : '';
-        const category = document.getElementById('new-task-category')?.value || 'folder';
-        
-        if (!title) {
-            UIController.showToast('El título de la tarea no puede estar vacío', 'warning');
-            return;
-        }
-
-        btnSaveTask.textContent = 'Guardando...';
-        btnSaveTask.disabled = true;
-
-        const newTask = { id: Date.now(), user_id: userId, title, category, completed: false };
-        
-        try {
-            const { data, error } = await supabase
-                .from('tasks')
-                .insert([{ user_id: userId, title, category, completed: false }])
-                .select();
-                
-            if (!error && data && data[0]) newTask.id = data[0].id;
-        } catch (err) {
-            console.warn("Guardado en DB falló, creado en UI local.");
-        }
-
-        currentTasks.unshift(newTask);
-        renderTasks();
-        updateProgressVisuals();
-        closeTaskModal();
-        UIController.showToast('Resolución agregada exitosamente', 'success');
-
-        btnSaveTask.textContent = 'Guardar Tarea';
-        btnSaveTask.disabled = false;
-    });
-
     function updateProgressVisuals() {
-        if (currentTasks.length === 0) {
-            if (progressBar) progressBar.style.width = '0%';
-            if (progressText) progressText.textContent = 'Progreso: 0%';
-            return;
-        }
+        if (currentTasks.length === 0) return;
         const completedCount = currentTasks.filter(t => t.completed).length;
         const percentage = Math.round((completedCount / currentTasks.length) * 100);
         
@@ -305,290 +217,285 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (progressText) progressText.textContent = `Progreso: ${percentage}%`;
     }
 
+    document.getElementById('btn-cancel-task')?.addEventListener('click', () => {
+        document.getElementById('task-modal').classList.add('opacity-0');
+        document.getElementById('task-modal-content').classList.add('scale-95');
+        setTimeout(() => {
+            document.getElementById('task-modal').classList.add('hidden');
+            document.getElementById('new-task-title').value = '';
+        }, 300);
+    });
+
+    document.getElementById('btn-save-task')?.addEventListener('click', async () => {
+        const title = document.getElementById('new-task-title').value.trim();
+        const category = document.getElementById('new-task-category').value;
+        if (!title) return;
+
+        const btn = document.getElementById('btn-save-task');
+        btn.textContent = 'Guardando...'; btn.disabled = true;
+
+        const newTask = { id: Date.now(), user_id: userId, title, category, completed: false };
+        try {
+            const { data, error } = await supabase.from('tasks').insert([{ user_id: userId, title, category, completed: false }]).select();
+            if (!error && data && data[0]) newTask.id = data[0].id;
+        } catch (err) {}
+
+        currentTasks.unshift(newTask);
+        renderTasks();
+        document.getElementById('btn-cancel-task').click();
+        UIController.showToast('Nueva resolución guardada', 'success');
+        
+        btn.textContent = 'Guardar Tarea'; btn.disabled = false;
+    });
+
     loadTasks();
 
     // ==========================================
     // 2. TEMPORIZADOR DE DEEP WORK
     // ==========================================
-    const timerDisplay = document.getElementById('timer-display');
-    const startBtn = document.getElementById('btn-start-timer');
-    const stopBtn = document.getElementById('btn-stop-timer');
-    const timerCircle = document.getElementById('timer-circle');
-    
     let timerInterval;
-    const WORK_TIME = 45 * 60; // 45 minutos en segundos
+    const WORK_TIME = 45 * 60; 
     let timeLeft = WORK_TIME;
     let isRunning = false;
-    const circleCircumference = timerCircle && typeof timerCircle.getTotalLength === 'function' ? timerCircle.getTotalLength() : 283;
-
-    function formatTime(seconds) {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-
+    
     function updateTimerDisplay() {
-        if (timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
-        if (timerCircle) {
-            const offset = circleCircumference - ((timeLeft / WORK_TIME) * circleCircumference);
-            timerCircle.style.strokeDashoffset = offset;
+        const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+        const secs = (timeLeft % 60).toString().padStart(2, '0');
+        if (document.getElementById('timer-display')) document.getElementById('timer-display').textContent = `${mins}:${secs}`;
+        
+        const circle = document.getElementById('timer-circle');
+        if (circle) {
+            const circ = 283;
+            circle.style.strokeDashoffset = circ - ((timeLeft / WORK_TIME) * circ);
         }
     }
 
-    function startTimer() {
-        if (isRunning) return;
-        isRunning = true;
-        
-        if (startBtn) {
-            startBtn.textContent = 'Pausar';
-            startBtn.classList.remove('bg-indigo-500', 'hover:bg-indigo-600');
-            startBtn.classList.add('bg-orange-500', 'hover:bg-orange-600', 'shadow-[0_0_20px_rgba(249,115,22,0.3)]');
+    document.getElementById('btn-start-timer')?.addEventListener('click', () => {
+        const btnStart = document.getElementById('btn-start-timer');
+        if (isRunning) {
+            clearInterval(timerInterval); isRunning = false;
+            btnStart.textContent = 'Reanudar';
+            return;
         }
-
-        // Usamos Date.now() para evitar desfasajes del navegador en pestañas inactivas
-        const endTime = Date.now() + (timeLeft * 1000);
         
+        isRunning = true;
+        btnStart.textContent = 'Pausar';
+        btnStart.classList.replace('bg-indigo-500', 'bg-orange-500');
+        btnStart.classList.replace('hover:bg-indigo-600', 'hover:bg-orange-600');
+
+        const endTime = Date.now() + (timeLeft * 1000);
         timerInterval = setInterval(() => {
             const secondsLeft = Math.round((endTime - Date.now()) / 1000);
-            
             if (secondsLeft <= 0) {
-                clearInterval(timerInterval);
-                isRunning = false; 
-                timeLeft = WORK_TIME;
-                updateTimerDisplay(); 
-                resetStartButton();
-                UIController.showToast('¡Sesión de Deep Work completada! Buen trabajo.', 'success');
-            } else {
-                timeLeft = secondsLeft; 
+                clearInterval(timerInterval); isRunning = false; timeLeft = WORK_TIME;
                 updateTimerDisplay();
+                btnStart.textContent = 'Iniciar';
+                btnStart.classList.replace('bg-orange-500', 'bg-indigo-500');
+                btnStart.classList.replace('hover:bg-orange-600', 'hover:bg-indigo-600');
+                UIController.showToast('¡Bloque de Deep Work finalizado!', 'success');
+            } else {
+                timeLeft = secondsLeft; updateTimerDisplay();
             }
         }, 1000);
-    }
-
-    function pauseTimer() {
-        clearInterval(timerInterval); 
-        isRunning = false;
-        if (startBtn) startBtn.textContent = 'Reanudar';
-    }
-
-    function resetStartButton() {
-        if (startBtn) {
-            startBtn.textContent = 'Iniciar';
-            startBtn.classList.remove('bg-orange-500', 'hover:bg-orange-600', 'shadow-[0_0_20px_rgba(249,115,22,0.3)]');
-            startBtn.classList.add('bg-indigo-500', 'hover:bg-indigo-600');
-        }
-    }
-
-    startBtn?.addEventListener('click', () => isRunning ? pauseTimer() : startTimer());
-    stopBtn?.addEventListener('click', () => { 
-        clearInterval(timerInterval); 
-        isRunning = false; 
-        timeLeft = WORK_TIME; 
-        updateTimerDisplay(); 
-        resetStartButton(); 
-        UIController.showToast('Temporizador reiniciado', 'info');
     });
-    
-    updateTimerDisplay(); // Inicializar visualización
+
+    document.getElementById('btn-stop-timer')?.addEventListener('click', () => {
+        clearInterval(timerInterval); isRunning = false; timeLeft = WORK_TIME;
+        updateTimerDisplay();
+        const btnStart = document.getElementById('btn-start-timer');
+        btnStart.textContent = 'Iniciar';
+        btnStart.classList.replace('bg-orange-500', 'bg-indigo-500');
+        btnStart.classList.replace('hover:bg-orange-600', 'hover:bg-indigo-600');
+    });
+    updateTimerDisplay();
 
     // ==========================================
     // 3. FINANZAS Y PATRIMONIO
     // ==========================================
-    const btnFinanceAction = document.getElementById('btn-finance-action');
-    
     async function loadFinances() {
         try {
             const { data, error } = await supabase.from('finances').select('*').eq('user_id', userId).single();
-            if (error || !data) throw error;
-            
-            const netWorthEl = document.getElementById('net-worth');
-            if (netWorthEl) netWorthEl.textContent = `$${Number(data.net_worth || 14250).toLocaleString()}`;
+            if (data) {
+                if (document.getElementById('net-worth')) document.getElementById('net-worth').textContent = `$${Number(data.net_worth).toLocaleString()}`;
+                if (document.getElementById('income-amount')) document.getElementById('income-amount').textContent = `+$${Number(data.income).toLocaleString()}`;
+                if (document.getElementById('expense-amount')) document.getElementById('expense-amount').textContent = `-$${Number(data.expense).toLocaleString()}`;
+            }
         } catch (e) {
-            // Mock Data en caso de no conectar la DB
-            if(document.getElementById('net-worth')) document.getElementById('net-worth').textContent = '$14,250.00';
-            if(document.getElementById('income-amount')) document.getElementById('income-amount').textContent = '+$3,200';
-            if(document.getElementById('expense-amount')) document.getElementById('expense-amount').textContent = '-$1,450';
-            if(document.getElementById('net-trend')) document.getElementById('net-trend').innerHTML = `<i class="ph-bold ph-trend-up"></i> +4.2% vs mes anterior`;
+            if (document.getElementById('net-worth')) document.getElementById('net-worth').textContent = '$14,250.00';
         }
     }
     loadFinances();
 
-    btnFinanceAction?.addEventListener('click', () => {
+    document.getElementById('btn-finance-action')?.addEventListener('click', () => {
         UIController.openDynamicModal(
-            'Control Financiero', 
-            '<i class="ph-fill ph-wallet text-emerald-400"></i>', 
-            `
-            <div class="bg-white/5 p-4 rounded-xl border border-white/5">
-                <p class="text-white font-medium mb-2">Desglose de este mes</p>
-                <div class="flex justify-between items-center py-2 border-b border-white/5">
-                    <span class="text-gray-400">Desarrollo Freelance</span>
-                    <span class="text-emerald-400 font-medium">+$2,400</span>
-                </div>
-                <div class="flex justify-between items-center py-2 border-b border-white/5">
-                    <span class="text-gray-400">Suscripciones / SaaS</span>
-                    <span class="text-white font-medium">-$120</span>
-                </div>
-                <div class="flex justify-between items-center py-2 border-b border-white/5">
-                    <span class="text-gray-400">Gastos Operativos</span>
-                    <span class="text-white font-medium">-$1,330</span>
-                </div>
-            </div>
-            <p class="text-xs text-gray-500 mt-4"><i class="ph ph-info"></i> Pronto podrás conectar tu banco automáticamente mediante Plaid API.</p>
-            `, 
-            'bg-emerald-500'
+            'Atajo Financiero', '<i class="ph-fill ph-wallet text-emerald-400"></i>',
+            `<p class="text-gray-400 mb-4">Ingresa rápidamente un movimiento a tu balance.</p>
+             <input type="number" id="quick-expense" placeholder="Monto ($)" class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-white focus:border-emerald-500/50 outline-none">`,
+            'bg-emerald-500', 'Guardar Gasto',
+            async () => {
+                const amount = document.getElementById('quick-expense').value;
+                if(amount) UIController.showToast(`Movimiento de $${amount} registrado.`, 'success');
+                UIController.closeDynamicModal();
+            }
         );
     });
 
     // ==========================================
-    // 4. PRÓXIMOS BLOQUES / AGENDA
+    // 4. DIARIO Y REFLEXIÓN (Crear)
     // ==========================================
-    const eventsContainer = document.getElementById('events-container');
-    const btnAddEvent = document.getElementById('btn-add-event');
-
-    if (eventsContainer) {
-        // Estructura mock cargada al DOM
-        eventsContainer.innerHTML = `
-            <div class="flex items-stretch gap-3 group cursor-pointer event-card" data-title="Revisión de Código" data-time="10:00 AM">
-                <div class="flex flex-col items-center justify-center w-14 bg-blue-500/10 border border-blue-500/20 rounded-xl py-2 shrink-0">
-                    <span class="text-xs text-blue-400 font-medium">10:00</span>
-                    <span class="text-xs text-gray-500">AM</span>
-                </div>
-                <div class="flex-1 bg-white/5 border border-white/5 rounded-xl p-3 group-hover:border-blue-500/30 transition-colors">
-                    <p class="text-sm font-semibold text-white">Revisión de Código</p>
-                    <p class="text-xs text-gray-400 mt-0.5">Arquitectura de la Base de Datos</p>
-                </div>
-            </div>
-            <div class="flex items-stretch gap-3 group cursor-pointer event-card" data-title="Pausa Activa" data-time="14:30 PM">
-                <div class="flex flex-col items-center justify-center w-14 bg-white/5 border border-white/10 rounded-xl py-2 shrink-0">
-                    <span class="text-xs text-gray-300 font-medium">14:30</span>
-                    <span class="text-xs text-gray-500">PM</span>
-                </div>
-                <div class="flex-1 bg-white/5 border border-white/5 rounded-xl p-3 group-hover:border-white/20 transition-colors">
-                    <p class="text-sm font-semibold text-white opacity-70">Desconexión / Pausa Activa</p>
-                    <p class="text-xs text-gray-500 mt-0.5">Estiramiento y meditación corta</p>
-                </div>
-            </div>
-        `;
-        
-        // Agregar interactividad a cada evento
-        eventsContainer.querySelectorAll('.event-card').forEach(card => {
-            card.addEventListener('click', () => {
-                UIController.openDynamicModal(
-                    card.dataset.title, 
-                    '<i class="ph-fill ph-calendar text-blue-400"></i>', 
-                    `<p class="text-gray-300">Este bloque está agendado para las <strong class="text-white">${card.dataset.time}</strong>. Te enviaremos una notificación cuando sea el momento de empezar.</p>`, 
-                    'bg-blue-500'
-                );
-            });
-        });
-    }
-
-    btnAddEvent?.addEventListener('click', () => {
-        UIController.openDynamicModal(
-            'Agregar Nuevo Evento', 
-            '<i class="ph-fill ph-plus-circle text-blue-400"></i>', 
-            `<p class="text-gray-400">Módulo de calendario en desarrollo. Pronto podrás agregar reuniones, recordatorios y vincularlos a Google Calendar.</p>`, 
-            'bg-blue-500'
-        );
-    });
-
-    // ==========================================
-    // 5. REGISTRO DIARIO Y ESTADO DE ÁNIMO
-    // ==========================================
-    let currentMood = 'neutral'; // Estado por defecto
-    
+    let currentMood = 'neutral';
     document.querySelectorAll('.mood-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            // Reiniciar botones
             document.querySelectorAll('.mood-btn').forEach(b => {
                 b.classList.add('grayscale', 'bg-white/5', 'border-white/10');
                 b.classList.remove('bg-indigo-500/20', 'border-indigo-500/30', 'bg-green-500/20', 'bg-blue-500/20', 'bg-red-500/20');
             });
-            // Activar seleccionado
-            const currentBtn = e.currentTarget;
-            currentBtn.classList.remove('grayscale', 'bg-white/5', 'border-white/10');
-            currentBtn.classList.add('bg-indigo-500/20', 'border-indigo-500/30');
-            currentMood = currentBtn.dataset.mood;
+            const btn = e.currentTarget;
+            btn.classList.remove('grayscale', 'bg-white/5', 'border-white/10');
+            btn.classList.add('bg-indigo-500/20', 'border-indigo-500/30');
+            currentMood = btn.dataset.mood;
         });
     });
 
     document.getElementById('btn-save-journal')?.addEventListener('click', async (e) => {
         const input = document.getElementById('journal-input');
-        if (!input || !input.value.trim()) {
-            UIController.showToast('Por favor escribe algo antes de guardar.', 'warning');
-            return;
-        }
+        if (!input.value.trim()) return;
 
-        const originalText = e.target.textContent;
-        e.target.textContent = 'Guardando...';
-        e.target.disabled = true;
+        const btn = e.currentTarget;
+        btn.textContent = 'Guardando...'; btn.disabled = true;
         
         try {
             await supabase.from('journal_entries').insert([{ user_id: userId, content: input.value.trim(), mood: currentMood }]);
-            UIController.showToast('Entrada de diario guardada correctamente', 'success');
+            UIController.showToast('Diario actualizado.', 'success');
             input.value = '';
         } catch (error) {
             UIController.showToast('Entrada guardada de forma local', 'info');
             input.value = '';
         } finally {
-            e.target.textContent = originalText;
-            e.target.disabled = false;
+            btn.textContent = 'Guardar entrada'; btn.disabled = false;
         }
     });
 
     // ==========================================
-    // 6. BOTONES SUPERIORES (Topbar & Sidebar)
+    // 5. PRÓXIMOS BLOQUES / AGENDA (CRUD REAL)
+    // ==========================================
+    let eventsList = [];
+    const eventsContainer = document.getElementById('events-container');
+
+    async function loadEvents() {
+        try {
+            const { data, error } = await supabase.from('events').select('*').eq('user_id', userId).order('created_at', { ascending: true });
+            if (!error && data) eventsList = data;
+        } catch (error) {
+            if (eventsList.length === 0) {
+                eventsList = [
+                    { id: 1, title: 'Revisión de Código', time_str: '10:00', period: 'AM', desc: 'Arquitectura de DB' },
+                    { id: 2, title: 'Pausa Activa', time_str: '14:30', period: 'PM', desc: 'Estiramiento' }
+                ];
+            }
+        }
+        renderEvents();
+    }
+
+    function renderEvents() {
+        if (!eventsContainer) return;
+        eventsContainer.innerHTML = '';
+
+        if (eventsList.length === 0) {
+            eventsContainer.innerHTML = `<p class="text-sm text-gray-500 text-center py-4">Agenda libre.</p>`;
+            return;
+        }
+
+        eventsList.forEach(ev => {
+            const html = `
+                <div class="flex items-stretch gap-3 group">
+                    <div class="flex flex-col items-center justify-center w-14 bg-blue-500/10 border border-blue-500/20 rounded-xl py-2 shrink-0">
+                        <span class="text-xs text-blue-400 font-medium">${ev.time_str}</span>
+                        <span class="text-[10px] text-gray-500">${ev.period}</span>
+                    </div>
+                    <div class="flex-1 bg-white/5 border border-white/5 rounded-xl p-3 flex justify-between items-center group-hover:border-blue-500/30 transition-colors">
+                        <div>
+                            <p class="text-sm font-semibold text-white">${ev.title}</p>
+                            <p class="text-xs text-gray-400 mt-0.5">${ev.desc || ''}</p>
+                        </div>
+                        <button class="delete-event-btn text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all p-2" data-id="${ev.id}"><i class="ph-fill ph-trash"></i></button>
+                    </div>
+                </div>
+            `;
+            eventsContainer.insertAdjacentHTML('beforeend', html);
+        });
+
+        eventsContainer.querySelectorAll('.delete-event-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const id = e.currentTarget.dataset.id;
+                eventsList = eventsList.filter(ev => ev.id != id);
+                renderEvents();
+                UIController.showToast('Evento eliminado', 'info');
+                try { await supabase.from('events').delete().eq('id', id); } catch(err){}
+            });
+        });
+    }
+
+    document.getElementById('btn-add-event')?.addEventListener('click', () => {
+        UIController.openDynamicModal(
+            'Agendar Bloque', '<i class="ph-fill ph-calendar-plus text-blue-400"></i>',
+            `<div class="space-y-3">
+                <input type="text" id="ev-title" placeholder="Título del bloque" class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-white text-sm focus:border-blue-500/50 outline-none">
+                <input type="text" id="ev-desc" placeholder="Descripción corta" class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-white text-sm focus:border-blue-500/50 outline-none">
+                <div class="flex gap-2">
+                    <input type="text" id="ev-time" placeholder="Ej: 15:00" class="w-2/3 bg-black/20 border border-white/10 rounded-xl p-3 text-white text-sm focus:border-blue-500/50 outline-none">
+                    <select id="ev-period" class="w-1/3 bg-black/20 border border-white/10 rounded-xl p-3 text-white text-sm focus:border-blue-500/50 outline-none appearance-none">
+                        <option value="AM" class="bg-gray-900">AM</option>
+                        <option value="PM" class="bg-gray-900">PM</option>
+                    </select>
+                </div>
+            </div>`,
+            'bg-blue-500', 'Agendar',
+            async () => {
+                const title = document.getElementById('ev-title').value.trim();
+                const desc = document.getElementById('ev-desc').value.trim();
+                const timeStr = document.getElementById('ev-time').value.trim();
+                const period = document.getElementById('ev-period').value;
+
+                if (!title || !timeStr) {
+                    UIController.showToast('El título y la hora son obligatorios.', 'warning');
+                    UIController.closeDynamicModal();
+                    return;
+                }
+
+                const newEv = { id: Date.now(), user_id: userId, title, desc, time_str: timeStr, period };
+                try {
+                    const { data, error } = await supabase.from('events').insert([newEv]).select();
+                    if (!error && data) newEv.id = data[0].id;
+                } catch(e){}
+
+                eventsList.push(newEv);
+                eventsList.sort((a, b) => a.time_str.localeCompare(b.time_str));
+                renderEvents();
+                
+                UIController.showToast('Bloque agendado correctamente.', 'success');
+                UIController.closeDynamicModal();
+            }
+        );
+    });
+
+    loadEvents();
+
+    // ==========================================
+    // 6. BOTONES GLOBALES DE PERFIL Y NOTIFICACIONES
     // ==========================================
     document.getElementById('btn-notifications')?.addEventListener('click', () => {
-        UIController.showToast('Bandeja vacía. No tienes notificaciones pendientes.', 'info');
+        UIController.showToast('No tienes notificaciones pendientes.', 'info');
     });
 
     document.getElementById('btn-profile')?.addEventListener('click', () => {
         UIController.openDynamicModal(
-            'Perfil de Usuario', 
-            '<i class="ph-fill ph-user-circle text-purple-400"></i>', 
-            `
-            <div class="flex items-center gap-4 mb-6">
-                <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 border-2 border-white/10 flex items-center justify-center text-xl text-white font-bold shadow-lg">DC</div>
-                <div>
-                    <p class="text-white font-medium text-lg">Administrador Nexus</p>
-                    <p class="text-emerald-400 text-xs mt-0.5 flex items-center gap-1"><i class="ph-fill ph-check-circle"></i> Conectado y en línea</p>
-                </div>
-            </div>
-            <div class="space-y-2">
-                <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Estadísticas Generales</p>
-                <div class="flex justify-between py-2 border-b border-white/5">
-                    <span class="text-gray-400">Horas Deep Work (Total)</span>
-                    <span class="text-white font-medium">14h 30m</span>
-                </div>
-                <div class="flex justify-between py-2">
-                    <span class="text-gray-400">Micro resoluciones hoy</span>
-                    <span class="text-white font-medium">2 completadas</span>
-                </div>
-            </div>
-            `, 
-            'bg-purple-500'
-        );
-    });
-
-    document.getElementById('btn-settings')?.addEventListener('click', () => {
-        UIController.openDynamicModal(
-            'Configuración', 
-            '<i class="ph-fill ph-gear text-gray-400"></i>', 
-            `
-            <div class="space-y-2">
-                <button class="w-full text-left flex justify-between items-center px-4 py-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors text-white group">
-                    Apariencia y Tema <i class="ph ph-caret-right text-gray-500 group-hover:text-white transition-colors"></i>
-                </button>
-                <button class="w-full text-left flex justify-between items-center px-4 py-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors text-white group">
-                    Integraciones (API / Webhooks) <i class="ph ph-caret-right text-gray-500 group-hover:text-white transition-colors"></i>
-                </button>
-                <button class="w-full text-left flex justify-between items-center px-4 py-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors text-white group">
-                    Exportar Base de Datos <i class="ph ph-download-simple text-gray-500 group-hover:text-white transition-colors"></i>
-                </button>
-            </div>
-            `, 
-            'bg-gray-600'
+            'Perfil Activo', '<i class="ph-fill ph-user-circle text-purple-400"></i>',
+            `<div class="flex items-center gap-4 mb-4">
+                <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-xl text-white font-bold">DC</div>
+                <div><p class="text-white font-medium text-lg">Admin Nexus</p><p class="text-emerald-400 text-xs">Conectado a la base de datos</p></div>
+            </div>`,
+            'bg-purple-500', 'Cerrar Modal'
         );
     });
 });

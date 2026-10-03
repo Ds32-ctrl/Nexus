@@ -14,6 +14,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
+    <!-- Estilos Globales y Específicos -->
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/dashboard.css">
 </head>
@@ -22,12 +23,66 @@
     <div class="bg-glow"></div>
 
     <div class="min-h-screen flex">
+        
+        <!-- ========================================== -->
         <!-- SIDEBAR -->
-        <div id="sidebar-container"></div>
+        <!-- ========================================== -->
+        <aside class="w-20 lg:w-64 glass border-r border-white/5 flex flex-col justify-between h-screen sticky top-0 z-40 transition-all duration-300">
+            <div>
+                <!-- Logo -->
+                <div class="h-20 flex items-center justify-center lg:justify-start lg:px-6 border-b border-white/5">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0">
+                        <i class="ph-bold ph-infinity text-white text-xl"></i>
+                    </div>
+                    <span class="hidden lg:block font-bold text-xl tracking-tight text-white ml-3">Nexus<span class="text-indigo-400">OS</span></span>
+                </div>
+                
+                <!-- Navegación Principal -->
+                <nav class="mt-6 px-2 lg:px-4 space-y-1">
+                    <p class="hidden lg:block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-3">Módulos Activos</p>
+                    
+                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 group transition-all">
+                        <i class="ph-fill ph-squares-four text-xl group-hover:scale-110 transition-transform"></i>
+                        <span class="hidden lg:block font-medium">Command Center</span>
+                    </a>
+                    <a href="deep-work.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group">
+                        <i class="ph ph-timer text-xl group-hover:scale-110 transition-transform"></i>
+                        <span class="hidden lg:block font-medium">Deep Work</span>
+                    </a>
+                    <a href="finance.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group">
+                        <i class="ph ph-wallet text-xl group-hover:scale-110 transition-transform"></i>
+                        <span class="hidden lg:block font-medium">Control Financiero</span>
+                    </a>
+                    <a href="journal.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group">
+                        <i class="ph ph-book-open-text text-xl group-hover:scale-110 transition-transform"></i>
+                        <span class="hidden lg:block font-medium">Diario & Reflexión</span>
+                    </a>
+                    <a href="library.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group">
+                        <i class="ph ph-books text-xl group-hover:scale-110 transition-transform"></i>
+                        <span class="hidden lg:block font-medium">Biblioteca</span>
+                    </a>
+                </nav>
+            </div>
 
+            <!-- Footer del Sidebar -->
+            <div class="p-4 border-t border-white/5 space-y-2">
+                <button id="btn-settings" class="w-full flex items-center justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                    <i class="ph ph-gear text-xl"></i>
+                    <span class="hidden lg:block font-medium">Configuración</span>
+                </button>
+                <button onclick="logout()" class="w-full flex items-center justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                    <i class="ph ph-sign-out text-xl"></i>
+                    <span class="hidden lg:block font-medium">Desconectar</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- ========================================== -->
         <!-- MAIN CONTENT -->
+        <!-- ========================================== -->
         <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-10 relative">
             
+            <!-- Header del Dashboard -->
             <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <h1 class="text-3xl font-bold text-white tracking-tight">Bienvenido de nuevo</h1>
@@ -51,6 +106,7 @@
                 </div>
             </header>
 
+            <!-- Grid Principal -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 
                 <!-- 1. Deep Work Widget -->
@@ -73,7 +129,7 @@
                         <div class="relative w-36 h-36 flex items-center justify-center shrink-0">
                             <svg class="w-full h-full transform -rotate-90 drop-shadow-[0_0_15px_rgba(99,102,241,0.3)]" viewBox="0 0 100 100">
                                 <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="6" />
-                                <circle id="timer-circle" cx="50" cy="50" r="45" fill="none" stroke="#6366f1" stroke-width="6" stroke-dasharray="283" stroke-dashoffset="90" stroke-linecap="round" class="transition-all duration-1000" />
+                                <circle id="timer-circle" cx="50" cy="50" r="45" fill="none" stroke="#6366f1" stroke-width="6" stroke-dasharray="283" stroke-dashoffset="0" stroke-linecap="round" class="transition-all duration-1000" />
                             </svg>
                             <div class="absolute flex flex-col items-center">
                                 <span id="timer-display" class="text-3xl font-bold text-white tracking-tighter">45:00</span>
@@ -81,7 +137,7 @@
                             </div>
                         </div>
                         
-                        <div class="flex-1 w-full space-y-3">
+                        <div class="flex-1 w-full space-y-3 z-10">
                             <div class="grid grid-cols-2 gap-3 mb-4">
                                 <div class="bg-white/5 p-3 rounded-xl border border-white/5">
                                     <p class="text-xs text-gray-400 mb-1">Total Hoy</p>
@@ -105,7 +161,7 @@
                 </div>
 
                 <!-- 2. Control Financiero -->
-                <div class="glass-card rounded-3xl p-6 md:col-span-1 xl:col-span-2">
+                <div class="glass-card rounded-3xl p-6 md:col-span-1 xl:col-span-2 relative z-10">
                     <div class="flex justify-between items-start mb-6">
                         <h2 class="text-lg font-semibold text-white flex items-center gap-2">
                             <i class="ph-fill ph-wallet text-emerald-400"></i> Finanzas
@@ -117,7 +173,7 @@
                         <div class="flex-1">
                             <p class="text-sm text-gray-400 mb-1">Patrimonio Neto Activo</p>
                             <h3 id="net-worth" class="text-3xl font-bold text-white tracking-tight">$0.00</h3>
-                            <p id="net-trend" class="text-xs text-emerald-400 mt-2 flex items-center gap-1 bg-emerald-500/10 inline-flex px-2 py-1 rounded-md border border-emerald-500/20">
+                            <p class="text-xs text-emerald-400 mt-2 flex items-center gap-1 bg-emerald-500/10 inline-flex px-2 py-1 rounded-md border border-emerald-500/20">
                                 <i class="ph-bold ph-trend-up"></i> Calculando...
                             </p>
                         </div>
@@ -142,7 +198,7 @@
                 </div>
 
                 <!-- 3. Micro Resoluciones (Tareas Atómicas) -->
-                <div class="glass-card rounded-3xl p-6 md:col-span-2 lg:col-span-3 xl:col-span-4">
+                <div class="glass-card rounded-3xl p-6 md:col-span-2 lg:col-span-3 xl:col-span-4 relative z-10">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-lg font-semibold text-white flex items-center gap-2">
                             <i class="ph-fill ph-check-square-offset text-purple-400"></i> Micro Resoluciones Diarias
@@ -154,6 +210,7 @@
                         <div id="progress-bar" class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full w-[0%] shadow-[0_0_10px_rgba(168,85,247,0.5)] transition-all duration-500"></div>
                     </div>
 
+                    <!-- Contenedor dinámico de Tareas -->
                     <div id="tasks-container" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                         <button id="btn-open-task-modal" class="flex items-center justify-center gap-2 p-4 rounded-2xl border border-dashed border-white/20 text-gray-400 hover:text-white hover:border-white/40 hover:bg-white/5 transition-all h-full min-h-[80px]">
                             <i class="ph ph-plus"></i> Nueva Resolución
@@ -162,7 +219,7 @@
                 </div>
 
                 <!-- 4. Registro Diario / Estado de Ánimo -->
-                <div class="glass-card rounded-3xl p-6 md:col-span-2 xl:col-span-2">
+                <div class="glass-card rounded-3xl p-6 md:col-span-2 xl:col-span-2 relative z-10">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-lg font-semibold text-white flex items-center gap-2">
                             <i class="ph-fill ph-notebook text-pink-400"></i> Registro Diario
@@ -193,7 +250,7 @@
                 </div>
 
                 <!-- 5. Próximos Eventos / Calendario -->
-                <div class="glass-card rounded-3xl p-6 md:col-span-2 xl:col-span-2">
+                <div class="glass-card rounded-3xl p-6 md:col-span-2 xl:col-span-2 relative z-10">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-lg font-semibold text-white flex items-center gap-2">
                             <i class="ph-fill ph-calendar-check text-blue-400"></i> Próximos Bloques
@@ -232,7 +289,7 @@
             </div>
             
             <div id="dynamic-modal-body" class="text-gray-300 text-sm space-y-4 relative z-10">
-                <!-- Contenido dinámico -->
+                <!-- Contenido dinámico inyectado por JS -->
             </div>
             
             <div class="mt-8 flex justify-end gap-3 relative z-10" id="dynamic-modal-actions">
@@ -242,7 +299,7 @@
     </div>
 
     <!-- Modal Específico: Crear Tarea -->
-    <div id="task-modal" class="hidden fixed inset-0 bg-[#050505]/80 z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+    <div id="task-modal" class="hidden fixed inset-0 bg-[#050505]/80 z-[60] flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="glass-card rounded-3xl p-6 w-full max-w-md border border-white/10 transform scale-95 transition-transform duration-300" id="task-modal-content">
             <h3 class="text-lg font-semibold text-white mb-4">Nueva Micro Resolución</h3>
             
@@ -270,9 +327,9 @@
         </div>
     </div>
 
+    <!-- Scripts Esenciales -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/auth.js"></script>
-    <script src="../js/modules/sidebar.js"></script>
     <script type="module" src="../js/dashboard.js"></script>
 </body>
 </html>
