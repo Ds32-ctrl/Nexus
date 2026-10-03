@@ -1,8 +1,8 @@
 // src/js/auth.js
 
 // 1. Inicializar Supabase (Asegúrate de poner tus credenciales reales aquí)
-const supabaseUrl = 'TU_SUPABASE_URL';
-const supabaseKey = 'TU_SUPABASE_ANON_KEY';
+const supabaseUrl = 'https://sirytqfdlbgkcuvkquiq.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcnl0cWZkbGJna2N1dmtxdWlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NjQwOTMsImV4cCI6MjEwNjU0MDA5M30.rv2TLpBL8_qMq_qlENS031H0neDbDJ_iQr48ohcUp-g';
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 // Manejar el inicio de sesión
