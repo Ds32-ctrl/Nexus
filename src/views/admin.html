@@ -3,57 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus | Comandancia Suprema</title>
+    <title>Nexus OS | Admin Control Panel</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/dashboard.css">
 </head>
-<body>
-    <nav class="navbar">
-        <div class="nav-brand">NEXUS <span class="status-dot pulse" style="margin-left: 8px;"></span></div>
-        <div class="nav-actions">
-            <span class="brand-badge" style="margin-bottom: 0; margin-right: 15px; border-color: var(--primary-color); color: var(--primary-color);">ADMINISTRADOR</span>
-            <button class="btn-icon" id="logoutBtn" aria-label="Cerrar sesión">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-            </button>
-        </div>
-    </nav>
+<body class="antialiased selection:bg-red-500 selection:text-white bg-[#050505]">
+    
+    <!-- Efecto de fondo global (Tono más oscuro/rojizo para el admin) -->
+    <div class="fixed top-50 left-50 w-[100vw] h-[100vh] -translate-x-1/2 -translate-y-1/2 bg-[radial-gradient(circle_at_50%_50%,rgba(220,38,38,0.1)_0%,rgba(0,0,0,0)_50%)] z-[-1] animate-[pulse-glow_10s_infinite_alternate]"></div>
 
-    <main class="dashboard-container fade-in">
-        <header class="dashboard-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; margin-bottom: 2rem;">
+    <div class="min-h-screen flex">
+        
+        <!-- Sidebar Admin -->
+        <aside class="w-20 lg:w-64 glass border-r border-red-500/10 flex flex-col justify-between h-screen sticky top-0 z-40">
             <div>
-                <h1>Comandancia <span class="gradient-text">Nexus</span></h1>
-                <p class="subtitle" style="margin-bottom: 0;">Centro de control de accesos y telemetría de red.</p>
-            </div>
-            <div class="metrics">
-                <div class="metric-card">
-                    <span class="metric-value" id="metricTotal">0</span>
-                    <span class="metric-label">Operadores Activos</span>
+                <div class="h-20 flex items-center justify-center lg:justify-start lg:px-6 border-b border-red-500/10">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center shadow-lg shadow-red-500/20 shrink-0">
+                        <i class="ph-bold ph-shield-check text-white text-xl"></i>
+                    </div>
+                    <span class="hidden lg:block font-bold text-xl tracking-tight text-white ml-3">Nexus<span class="text-red-500">Admin</span></span>
                 </div>
-                <div class="metric-card">
-                    <span class="metric-value" id="metricPending" style="color: #f59e0b;">0</span>
-                    <span class="metric-label">Solicitudes</span>
-                </div>
+                
+                <nav class="mt-6 px-2 lg:px-4 space-y-1" id="admin-nav">
+                    <button data-target="sys-overview" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 group transition-all admin-tab-btn active">
+                        <i class="ph-fill ph-cpu text-xl group-hover:scale-110 transition-transform"></i>
+                        <span class="hidden lg:block font-medium">Estado del Sistema</span>
+                    </button>
+                    <button data-target="user-management" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group admin-tab-btn">
+                        <i class="ph ph-users text-xl group-hover:scale-110 transition-transform"></i>
+                        <span class="hidden lg:block font-medium">Gestión de Usuarios</span>
+                    </button>
+                    <button data-target="security-logs" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group admin-tab-btn">
+                        <i class="ph ph-shield-warning text-xl group-hover:scale-110 transition-transform"></i>
+                        <span class="hidden lg:block font-medium">Registros de Seguridad</span>
+                    </button>
+                </nav>
             </div>
-        </header>
 
-        <section class="admin-grid">
-            <div class="admin-card">
-                <h3 style="color: #f59e0b; margin-bottom: 1.5rem;">Solicitudes Pendientes</h3>
-                <div id="pendingList" class="user-list">
-                    <p class="text-muted">Analizando base de datos...</p>
-                </div>
+            <div class="p-4 border-t border-red-500/10 space-y-2">
+                <a href="dashboard.html" class="w-full flex items-center justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                    <i class="ph ph-arrow-left text-xl"></i>
+                    <span class="hidden lg:block font-medium">Volver al Dashboard</span>
+                </a>
             </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-10 relative">
             
-            <div class="admin-card">
-                <h3 style="color: var(--primary-color); margin-bottom: 1.5rem;">Directorio de Operadores</h3>
-                <div id="activeList" class="user-list">
-                    <p class="text-muted">Analizando base de datos...</p>
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-white tracking-tight">Panel de Control Global</h1>
+                    <p class="text-gray-400 text-sm mt-1">Acceso Nivel 5: Administrador Supremo</p>
                 </div>
-            </div>
-        </section>
-    </main>
+            </header>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+            <!-- Sección: Overview -->
+            <section id="sys-overview" class="admin-section fade-in-section is-visible">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="glass-card rounded-3xl p-6 border-red-500/20">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="p-3 bg-red-500/10 rounded-xl text-red-500"><i class="ph-fill ph-users text-2xl"></i></div>
+                            <div>
+                                <p class="text-sm text-gray-400">Usuarios Totales</p>
+                                <h3 class="text-2xl font-bold text-white">1,248</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-3xl p-6 border-orange-500/20">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="p-3 bg-orange-500/10 rounded-xl text-orange-500"><i class="ph-fill ph-hard-drives text-2xl"></i></div>
+                            <div>
+                                <p class="text-sm text-gray-400">Carga del Servidor</p>
+                                <h3 class="text-2xl font-bold text-white">42%</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-3xl p-6 border-green-500/20">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="p-3 bg-green-500/10 rounded-xl text-green-500"><i class="ph-fill ph-check-circle text-2xl"></i></div>
+                            <div>
+                                <p class="text-sm text-gray-400">Estado de la Base de Datos</p>
+                                <h3 class="text-2xl font-bold text-white">Óptimo</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección: Gestión de Usuarios (Oculta por defecto) -->
+            <section id="user-management" class="admin-section hidden fade-in-section">
+                <div class="glass-card rounded-3xl p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-white">Directorio de Usuarios</h2>
+                        <button class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-xl transition-colors">
+                            + Nuevo Usuario
+                        </button>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-white/10 text-sm text-gray-400">
+                                    <th class="pb-3 px-4">Usuario</th>
+                                    <th class="pb-3 px-4">Rol</th>
+                                    <th class="pb-3 px-4">Estado</th>
+                                    <th class="pb-3 px-4 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-table-body" class="text-sm">
+                                <!-- Filas generadas por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
     <script src="../js/admin.js"></script>
 </body>
 </html>

@@ -1,217 +1,67 @@
-/* Estilos específicos para la vista de la aplicación (Dashboard) */
+/* src/css/dashboard.css */
 
-body {
-    padding: 0;
-    justify-content: flex-start;
-    align-items: stretch;
-}
-
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 2rem;
-    background-color: var(--surface-color);
-    border-bottom: 1px solid var(--border-color);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.nav-brand {
-    font-weight: 800;
-    font-size: 1.2rem;
-    letter-spacing: 2px;
-    display: flex;
-    align-items: center;
-}
-
-.btn-icon {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: color 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.5rem;
-}
-
-.btn-icon:hover {
-    color: var(--text-main);
-}
-
-.dashboard-container {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 2rem;
-    width: 100%;
-}
-
-.dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 3rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.dashboard-header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.metrics {
-    display: flex;
-    gap: 1rem;
-}
-
-.metric-card {
-    background-color: var(--surface-color);
-    border: 1px solid var(--border-color);
-    padding: 1rem 1.5rem;
-    border-radius: 12px;
-    text-align: center;
-}
-
-.metric-value {
-    display: block;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--primary-color);
-}
-
-.metric-label {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.schedule-grid {
+/* Estilos específicos para inputs personalizados (como checkboxes) */
+input[type="checkbox"] {
+    appearance: none;
+    background-color: rgba(255, 255, 255, 0.05);
+    margin: 0;
+    font: inherit;
+    color: currentColor;
+    width: 1.25em;
+    height: 1.25em;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.35em;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-}
-
-.task-card {
-    background-color: var(--surface-color);
-    border: 1px solid var(--border-color);
-    padding: 1.5rem;
-    border-radius: 12px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    border-left-width: 4px;
-}
-
-.task-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow);
-}
-
-.task-time {
-    font-family: monospace;
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    margin-bottom: 0.5rem;
-}
-
-.task-title {
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
-}
-
-.task-desc {
-    font-size: 0.95rem;
-    color: var(--text-muted);
-    line-height: 1.5;
-}
-
-/* Colores para categorizar actividades */
-.border-work { border-left-color: #f59e0b; }
-.border-study { border-left-color: #3b82f6; }
-.border-deep { border-left-color: #8b5cf6; }
-.border-rest { border-left-color: #10b981; }
-
-@media (max-width: 768px) {
-    .dashboard-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-}
-/* --- ESTILOS DE LA COMANDANCIA (ADMIN PANEL) --- */
-.admin-panel {
-    background: rgba(88, 166, 255, 0.03);
-    border: 1px dashed var(--primary-color);
-    padding: 2rem;
-    border-radius: 16px;
-    margin-bottom: 3rem;
-}
-
-.admin-header {
-    margin-bottom: 1.5rem;
-    border-bottom: 1px solid rgba(88, 166, 255, 0.2);
-    padding-bottom: 1rem;
-}
-
-.admin-header h2 {
-    color: var(--primary-color);
-    font-size: 1.5rem;
-}
-
-.admin-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-}
-
-.admin-card {
-    background: var(--surface-color);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1.5rem;
-}
-
-.user-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.user-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    background: var(--bg-color);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    transition: border-color 0.2s ease;
-}
-
-.user-item:hover {
-    border-color: var(--text-muted);
-}
-
-.user-info h4 { margin: 0; font-size: 1rem; }
-.user-info span { font-size: 0.8rem; color: var(--text-muted); }
-
-.admin-btn {
-    padding: 0.4rem 0.8rem;
-    border-radius: 6px;
-    font-size: 0.85rem;
+    place-content: center;
+    transition: all 0.2s ease-in-out;
     cursor: pointer;
-    font-weight: 600;
-    border: 1px solid;
-    background: transparent;
-    transition: all 0.2s ease;
 }
 
-.btn-approve { border-color: var(--accent); color: var(--accent); }
-.btn-approve:hover { background: rgba(46, 160, 67, 0.1); }
+input[type="checkbox"]::before {
+    content: "";
+    width: 0.65em;
+    height: 0.65em;
+    transform: scale(0);
+    transition: 120ms transform ease-in-out;
+    box-shadow: inset 1em 1em white;
+    background-color: white;
+    transform-origin: center;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
 
-.btn-revoke { border-color: #ef4444; color: #ef4444; }
-.btn-revoke:hover { background: rgba(239, 68, 68, 0.1); }
+input[type="checkbox"]:checked {
+    background-color: #8b5cf6; /* purple-500 */
+    border-color: #8b5cf6;
+}
+
+input[type="checkbox"]:checked::before {
+    transform: scale(1);
+}
+
+/* Efectos sutiles para tablas en el Admin */
+table {
+    border-spacing: 0;
+}
+
+tbody tr:last-child {
+    border-bottom: none;
+}
+
+/* Asegurar que las animaciones de admin sections se comporten igual que las del index */
+.admin-section {
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+.admin-section.hidden {
+    display: none;
+}
+
+/* Animación de pulso más lenta para el fondo del dashboard/admin si se requiere */
+@keyframes slow-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.animate-slow-pulse {
+    animation: slow-pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

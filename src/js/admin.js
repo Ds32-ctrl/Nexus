@@ -1,73 +1,90 @@
-const supabaseUrl = 'https://sirytqfdlbgkcuvkquiq.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcnl0cWZkbGJna2N1dmtxdWlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NjQwOTMsImV4cCI6MjEwNjU0MDA5M30.rv2TLpBL8_qMq_qlENS031H0neDbDJ_iQr48ohcUp-g';
-const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+// src/js/admin.js
 
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-        if (authError || !user) return window.location.href = 'login.html';
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // 1. Navegación por pestañas (Tab Switching)
+    const tabButtons = document.querySelectorAll('.admin-tab-btn');
+    const sections = document.querySelectorAll('.admin-section');
 
-        const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', user.id).single();
-        
-        // Aislar ruta: Si no es admin, lo expulsa al dashboard normal
-        if (!profile || profile.role !== 'admin') {
-            return window.location.href = 'dashboard.html';
-        }
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Desactivar todos los botones
+            tabButtons.forEach(btn => {
+                btn.classList.remove('bg-red-500/10', 'text-red-400', 'border-red-500/20');
+                btn.classList.add('text-gray-400', 'border-transparent');
+            });
 
-        loadAdminData();
-    } catch (err) {
-        console.error("Fallo de seguridad:", err);
+            // Activar el botón clickeado
+            button.classList.add('bg-red-500/10', 'text-red-400', 'border-red-500/20');
+            button.classList.remove('text-gray-400', 'border-transparent');
+
+            // Ocultar todas las secciones
+            sections.forEach(sec => {
+                sec.classList.add('hidden');
+                sec.classList.remove('is-visible');
+            });
+
+            // Mostrar la sección correspondiente
+            const targetId = button.getAttribute('data-target');
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+                // Pequeño timeout para permitir que el display:block se aplique antes de animar la opacidad
+                setTimeout(() => {
+                    targetSection.classList.add('is-visible');
+                }, 50);
+            }
+        });
+    });
+
+    // 2. Renderizado de Datos Mock (Gestión de Usuarios)
+    const mockUsers = [
+        { id: 1, name: 'Daniel Carrillo', email: 'admin@nexus.os', role: 'Super Admin', status: 'Activo' },
+        { id: 2, name: 'Usuario Prueba', email: 'test@nexus.os', role: 'Estándar', status: 'Activo' },
+        { id: 3, name: 'Invitado_092', email: 'invitado@nexus.os', role: 'Invitado', status: 'Suspendido' }
+    ];
+
+    const tbody = document.getElementById('user-table-body');
+    
+    if (tbody) {
+        mockUsers.forEach(user => {
+            const statusColor = user.status === 'Activo' ? 'text-green-400 bg-green-500/10 border-green-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20';
+            
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-white/5 hover:bg-white/5 transition-colors group';
+            tr.innerHTML = `
+                <td class="py-4 px-4">
+                    <p class="font-medium text-white">${user.name}</p>
+                    <p class="text-xs text-gray-500">${user.email}</p>
+                </td>
+                <td class="py-4 px-4 text-gray-300">${user.role}</td>
+                <td class="py-4 px-4">
+                    <span class="px-2.5 py-1 rounded-md border text-xs font-medium ${statusColor}">
+                        ${user.status}
+                    </span>
+                </td>
+                <td class="py-4 px-4 text-right">
+                    <button class="text-gray-500 hover:text-white transition-colors mr-2" title="Editar" onclick="editUser(${user.id})">
+                        <i class="ph ph-pencil-simple text-lg"></i>
+                    </button>
+                    <button class="text-gray-500 hover:text-red-400 transition-colors" title="Eliminar" onclick="deleteUser(${user.id})">
+                        <i class="ph ph-trash text-lg"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
     }
+
 });
 
-async function loadAdminData() {
-    const { data: allUsers, error } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
-    if (error) return console.error(error);
+// Funciones globales para las acciones de la tabla
+window.editUser = function(id) {
+    alert(`Abriendo configuración para el usuario ID: ${id}`);
+};
 
-    const pendingUsers = allUsers.filter(u => u.is_approved === false);
-    const activeUsers = allUsers.filter(u => u.is_approved === true && u.role !== 'admin');
-
-    // Actualizar Telemetría
-    document.getElementById('metricTotal').innerText = activeUsers.length;
-    document.getElementById('metricPending').innerText = pendingUsers.length;
-
-    // Renderizar Pendientes
-    const pendingList = document.getElementById('pendingList');
-    pendingList.innerHTML = pendingUsers.length === 0 ? '<p class="text-muted">Red limpia. No hay solicitudes pendientes.</p>' : 
-        pendingUsers.map(u => `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 12px;">
-                <div>
-                    <h4 style="margin: 0 0 4px 0; color: #e6edf3;">${u.full_name}</h4>
-                    <span style="font-size: 0.85rem; color: #8b949e;">${u.profession}</span>
-                </div>
-                <button style="background: #238636; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;" onclick="updateUser('${u.id}', {is_approved: true})">Aprobar Acceso</button>
-            </div>
-        `).join('');
-
-    // Renderizar Activos con opciones avanzadas
-    const activeList = document.getElementById('activeList');
-    activeList.innerHTML = activeUsers.length === 0 ? '<p class="text-muted">No hay otros operadores en la red.</p>' : 
-        activeUsers.map(u => `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 12px;">
-                <div>
-                    <h4 style="margin: 0 0 4px 0; color: #e6edf3;">${u.full_name}</h4>
-                    <span style="font-size: 0.85rem; color: #8b949e;">${u.profession}</span>
-                </div>
-                <div style="display: flex; gap: 8px;">
-                    <button style="background: transparent; color: #58a6ff; border: 1px solid #58a6ff; padding: 6px 12px; border-radius: 6px; cursor: pointer;" onclick="updateUser('${u.id}', {role: 'admin'})">Hacer Admin</button>
-                    <button style="background: transparent; color: #f85149; border: 1px solid #f85149; padding: 6px 12px; border-radius: 6px; cursor: pointer;" onclick="updateUser('${u.id}', {is_approved: false})">Revocar</button>
-                </div>
-            </div>
-        `).join('');
-}
-
-window.updateUser = async function(userId, updates) {
-    const { error } = await supabaseClient.from('profiles').update(updates).eq('id', userId);
-    if (error) return alert('Error en la operación: ' + error.message);
-    loadAdminData();
-}
-
-document.getElementById('logoutBtn').addEventListener('click', async () => {
-    await supabaseClient.auth.signOut();
-    window.location.href = 'login.html';
-});
+window.deleteUser = function(id) {
+    if(confirm(`¿Estás seguro de que deseas suspender/eliminar al usuario ID: ${id}?`)) {
+        alert('Usuario eliminado del sistema local.');
+    }
+};
