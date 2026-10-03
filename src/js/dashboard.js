@@ -5,8 +5,8 @@
 // ==========================================
 // Reemplaza con tus credenciales de Supabase. 
 // Idealmente, esto debería venir de tu auth.js si ya lo exportaste desde allí.
-const SUPABASE_URL = 'TU_URL_DE_SUPABASE';
-const SUPABASE_ANON_KEY = 'TU_ANON_KEY_DE_SUPABASE';
+const SUPABASE_URL = 'https://sirytqfdlbgkcuvkquiq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcnl0cWZkbGJna2N1dmtxdWlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NjQwOTMsImV4cCI6MjEwNjU0MDA5M30.rv2TLpBL8_qMq_qlENS031H0neDbDJ_iQr48ohcUp-g';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 document.addEventListener('DOMContentLoaded', async () => {
