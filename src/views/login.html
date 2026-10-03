@@ -4,94 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus | Acceso Seguro</title>
+    
+    <!-- Tailwind CSS (Requerido para el diseño) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tu CSS base para el bg-glow y glass -->
     <link rel="stylesheet" href="../css/style.css">
-    <style>
-        .auth-container { width: 100%; max-width: 420px; }
-        .form-group { margin-bottom: 1.2rem; text-align: left; }
-        .form-group label { display: block; margin-bottom: 0.4rem; font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;}
-        .form-control { width: 100%; padding: 0.75rem 1rem; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 8px; font-size: 1rem; transition: all 0.3s ease; }
-        .form-control:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2); }
-        
-        /* Sistema de Pestañas */
-        .auth-tabs { display: flex; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); }
-        .tab-btn { flex: 1; padding: 1rem; background: transparent; border: none; color: var(--text-muted); font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s ease; }
-        .tab-btn.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
-        .tab-btn:hover:not(.active) { color: var(--text-main); background: rgba(255,255,255,0.02); }
-        .tab-content { display: none; animation: fadeIn 0.4s ease; }
-        .tab-content.active { display: block; }
-        
-        .back-link { display: block; margin-top: 1.5rem; color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s ease; }
-        .back-link:hover { color: var(--text-main); }
-    </style>
 </head>
-<body>
-    <div class="auth-container fade-in">
-        <h2 style="margin-bottom: 0.5rem; font-size: 2rem;">Sistema <span class="gradient-text">Nexus</span></h2>
-        <p class="subtitle" style="margin-bottom: 2rem; font-size: 1rem;" id="formDesc">Autenticación requerida para operar.</p>
+<body class="antialiased selection:bg-indigo-500 selection:text-white flex items-center justify-center min-h-screen bg-[#050505]">
+    
+    <!-- Efecto de fondo global -->
+    <div class="bg-glow"></div>
 
-        <div class="action-card">
-            
-            <div class="auth-tabs">
-                <button class="tab-btn active" onclick="switchTab('login')">Iniciar Sesión</button>
-                <button class="tab-btn" onclick="switchTab('register')">Solicitar Acceso</button>
+    <div class="relative w-full max-w-md p-8 m-4 rounded-3xl glass border border-white/10 shadow-2xl transition-all duration-300">
+        
+        <div class="text-center mb-6">
+            <div class="w-12 h-12 mx-auto rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/30">
+                <i class="ph-bold ph-infinity text-white text-2xl"></i>
             </div>
-
-            <!-- TAB: LOGIN -->
-            <form id="loginForm" class="tab-content active">
-                <div class="form-group">
-                    <label for="loginEmail">Identificador (Email)</label>
-                    <input type="email" id="loginEmail" class="form-control" placeholder="operador@nexus.com" required>
-                </div>
-                <div class="form-group">
-                    <label for="loginPassword">Clave de Acceso</label>
-                    <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
-                </div>
-                <button type="submit" class="btn btn-primary" id="loginBtn" style="margin-top: 1rem;">Iniciar Protocolo</button>
-            </form>
-
-            <!-- TAB: REGISTRO -->
-            <form id="registerForm" class="tab-content">
-                <div class="form-group">
-                    <label for="regName">Nombre Completo</label>
-                    <input type="text" id="regName" class="form-control" placeholder="Ej: Daniel Carrillo" required>
-                </div>
-                <div class="form-group">
-                    <label for="regProfession">Enfoque / Profesión</label>
-                    <input type="text" id="regProfession" class="form-control" placeholder="Ej: Ingeniero de Sistemas" required>
-                </div>
-                <div class="form-group">
-                    <label for="regEmail">Correo Electrónico</label>
-                    <input type="email" id="regEmail" class="form-control" placeholder="tu@email.com" required>
-                </div>
-                <div class="form-group">
-                    <label for="regPassword">Nueva Clave (Mín. 6)</label>
-                    <input type="password" id="regPassword" class="form-control" placeholder="••••••••" required minlength="6">
-                </div>
-                <button type="submit" class="btn btn-primary" id="regBtn" style="margin-top: 1rem;">Enviar Solicitud</button>
-            </form>
-
+            <h2 class="text-2xl font-bold text-white">Sistema Nexus</h2>
+            <p class="text-gray-400 text-sm mt-2" id="formDesc">Autenticación requerida para operar.</p>
         </div>
-        <a href="../../index.html" class="back-link">← Volver al inicio</a>
+
+        <!-- Pestañas -->
+        <div class="flex mb-6 border-b border-white/10">
+            <button id="tab-login" class="flex-1 pb-3 text-sm font-semibold text-indigo-400 border-b-2 border-indigo-500 transition-colors" onclick="switchTab('login')">Iniciar Sesión</button>
+            <button id="tab-register" class="flex-1 pb-3 text-sm font-semibold text-gray-500 hover:text-gray-300 border-b-2 border-transparent transition-colors" onclick="switchTab('register')">Solicitar Acceso</button>
+        </div>
+
+        <!-- TAB: LOGIN -->
+        <form id="loginForm" class="space-y-5 block">
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Identificador (Email)</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="ph ph-envelope-simple text-gray-500"></i>
+                    </div>
+                    <input type="email" id="loginEmail" class="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white placeholder-gray-500 outline-none transition-all" placeholder="operador@nexus.com" required>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Clave de Acceso</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="ph ph-lock-key text-gray-500"></i>
+                    </div>
+                    <input type="password" id="loginPassword" class="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white placeholder-gray-500 outline-none transition-all" placeholder="••••••••" required>
+                </div>
+            </div>
+            <button type="submit" class="w-full py-3.5 mt-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold hover:shadow-lg hover:shadow-indigo-500/30 transition-all flex items-center justify-center gap-2">
+                <span>Iniciar Protocolo</span>
+                <i class="ph-bold ph-sign-in"></i>
+            </button>
+        </form>
+
+        <!-- TAB: REGISTRO -->
+        <form id="registerForm" class="space-y-4 hidden">
+            <div>
+                <input type="text" id="regName" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white placeholder-gray-500 outline-none transition-all" placeholder="Nombre Completo" required>
+            </div>
+            <div>
+                <input type="text" id="regProfession" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white placeholder-gray-500 outline-none transition-all" placeholder="Enfoque / Profesión" required>
+            </div>
+            <div>
+                <input type="email" id="regEmail" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white placeholder-gray-500 outline-none transition-all" placeholder="Correo Electrónico" required>
+            </div>
+            <div>
+                <input type="password" id="regPassword" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white placeholder-gray-500 outline-none transition-all" placeholder="Nueva Clave (Mín. 6)" required minlength="6">
+            </div>
+            <button type="submit" class="w-full py-3.5 mt-2 rounded-xl bg-white/10 border border-white/20 text-white font-bold hover:bg-white/20 transition-all">
+                Enviar Solicitud
+            </button>
+        </form>
+
+        <div class="mt-8 text-center border-t border-white/10 pt-4">
+            <a href="../../index.html" class="text-sm text-gray-500 hover:text-white transition-colors flex items-center justify-center gap-2">
+                <i class="ph ph-arrow-left"></i> Volver al inicio
+            </a>
+        </div>
     </div>
 
-    <!-- Lógica de Interfaz Local (Evita errores de carga externa) -->
+    <!-- Lógica de Pestañas adaptada a Tailwind -->
     <script>
         function switchTab(tabId) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            if(tabId === 'login') {
-                document.querySelectorAll('.tab-btn')[0].classList.add('active');
-                document.getElementById('loginForm').classList.add('active');
-                document.getElementById('formDesc').innerText = "Autenticación requerida para operar.";
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const tabLogin = document.getElementById('tab-login');
+            const tabRegister = document.getElementById('tab-register');
+            const formDesc = document.getElementById('formDesc');
+
+            // Resetear estilos de pestañas
+            tabLogin.className = "flex-1 pb-3 text-sm font-semibold text-gray-500 hover:text-gray-300 border-b-2 border-transparent transition-colors";
+            tabRegister.className = "flex-1 pb-3 text-sm font-semibold text-gray-500 hover:text-gray-300 border-b-2 border-transparent transition-colors";
+
+            if (tabId === 'login') {
+                tabLogin.className = "flex-1 pb-3 text-sm font-semibold text-indigo-400 border-b-2 border-indigo-500 transition-colors";
+                loginForm.classList.remove('hidden');
+                loginForm.classList.add('block');
+                registerForm.classList.remove('block');
+                registerForm.classList.add('hidden');
+                formDesc.innerText = "Autenticación requerida para operar.";
             } else {
-                document.querySelectorAll('.tab-btn')[1].classList.add('active');
-                document.getElementById('registerForm').classList.add('active');
-                document.getElementById('formDesc').innerText = "Tu cuenta requerirá aprobación del Administrador.";
+                tabRegister.className = "flex-1 pb-3 text-sm font-semibold text-indigo-400 border-b-2 border-indigo-500 transition-colors";
+                registerForm.classList.remove('hidden');
+                registerForm.classList.add('block');
+                loginForm.classList.remove('block');
+                loginForm.classList.add('hidden');
+                formDesc.innerText = "Tu cuenta requerirá aprobación del Administrador.";
             }
         }
     </script>
 
+    <!-- Tus scripts externos intactos -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/auth.js"></script>
 </body>
