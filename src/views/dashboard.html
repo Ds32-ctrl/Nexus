@@ -66,7 +66,7 @@
                     <!-- Separador -->
                     <div class="h-px w-full bg-white/5 my-4"></div>
 
-                    <!-- Módulos en Desarrollo (Estructura Base) -->
+                    <!-- Módulos en Desarrollo -->
                     <p class="hidden lg:block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-3">Desarrollo (Próximamente)</p>
                     
                     <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-500 hover:text-gray-300 transition-all group">
@@ -98,18 +98,17 @@
         <!-- ========================================== -->
         <!-- MAIN CONTENT -->
         <!-- ========================================== -->
-        <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-10">
+        <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-10 relative">
             
             <!-- Header del Dashboard -->
             <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <h1 class="text-3xl font-bold text-white tracking-tight">Bienvenido de nuevo</h1>
-                    <p class="text-gray-400 text-sm mt-1 flex items-center gap-2">
-                        <i class="ph ph-calendar-blank"></i> Sábado, 3 de Octubre, 2026
+                    <p id="current-date" class="text-gray-400 text-sm mt-1 flex items-center gap-2">
+                        <i class="ph ph-calendar-blank"></i> Cargando fecha...
                     </p>
                 </div>
                 <div class="flex items-center gap-4">
-                    <!-- Buscador rápido -->
                     <div class="hidden md:flex items-center px-4 py-2 bg-white/5 border border-white/10 rounded-full">
                         <i class="ph ph-magnifying-glass text-gray-400 mr-2"></i>
                         <input type="text" placeholder="Comando rápido (Ej: /tarea)" class="bg-transparent border-none text-sm text-white placeholder-gray-500 focus:outline-none w-48">
@@ -128,7 +127,7 @@
             <!-- Grid Principal -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 
-                <!-- 1. Deep Work Widget (Ocupa 2 columnas) -->
+                <!-- 1. Deep Work Widget -->
                 <div class="glass-card rounded-3xl p-6 md:col-span-2 relative overflow-hidden group">
                     <div class="absolute top-0 right-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl -mt-10 -mr-10 transition-all group-hover:bg-indigo-500/20"></div>
                     
@@ -146,13 +145,12 @@
                     
                     <div class="flex flex-col sm:flex-row items-center gap-8">
                         <div class="relative w-36 h-36 flex items-center justify-center shrink-0">
-                            <!-- Circular Progress SVG -->
                             <svg class="w-full h-full transform -rotate-90 drop-shadow-[0_0_15px_rgba(99,102,241,0.3)]" viewBox="0 0 100 100">
                                 <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="6" />
-                                <circle cx="50" cy="50" r="45" fill="none" stroke="#6366f1" stroke-width="6" stroke-dasharray="283" stroke-dashoffset="90" stroke-linecap="round" class="transition-all duration-1000" />
+                                <circle id="timer-circle" cx="50" cy="50" r="45" fill="none" stroke="#6366f1" stroke-width="6" stroke-dasharray="283" stroke-dashoffset="90" stroke-linecap="round" class="transition-all duration-1000" />
                             </svg>
                             <div class="absolute flex flex-col items-center">
-                                <span class="text-3xl font-bold text-white tracking-tighter">45:00</span>
+                                <span id="timer-display" class="text-3xl font-bold text-white tracking-tighter">45:00</span>
                                 <span class="text-[10px] uppercase tracking-widest text-gray-400 mt-1">Enfoque</span>
                             </div>
                         </div>
@@ -161,7 +159,7 @@
                             <div class="grid grid-cols-2 gap-3 mb-4">
                                 <div class="bg-white/5 p-3 rounded-xl border border-white/5">
                                     <p class="text-xs text-gray-400 mb-1">Total Hoy</p>
-                                    <p class="text-lg font-semibold text-white">2h 15m</p>
+                                    <p class="text-lg font-semibold text-white">0h 0m</p>
                                 </div>
                                 <div class="bg-white/5 p-3 rounded-xl border border-white/5">
                                     <p class="text-xs text-gray-400 mb-1">Distracciones</p>
@@ -169,10 +167,10 @@
                                 </div>
                             </div>
                             <div class="flex gap-2">
-                                <button class="flex-1 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-semibold transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_25px_rgba(99,102,241,0.5)]">
+                                <button id="btn-start-timer" class="flex-1 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-semibold transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_25px_rgba(99,102,241,0.5)]">
                                     Iniciar
                                 </button>
-                                <button class="px-4 py-2.5 rounded-xl glass hover:bg-white/5 text-gray-300 transition-colors">
+                                <button id="btn-stop-timer" class="px-4 py-2.5 rounded-xl glass hover:bg-white/5 text-gray-300 transition-colors">
                                     <i class="ph-bold ph-stop"></i>
                                 </button>
                             </div>
@@ -192,9 +190,10 @@
                     <div class="flex flex-col sm:flex-row gap-6">
                         <div class="flex-1">
                             <p class="text-sm text-gray-400 mb-1">Patrimonio Neto Activo</p>
-                            <h3 class="text-3xl font-bold text-white tracking-tight">$14,250.00</h3>
-                            <p class="text-xs text-emerald-400 mt-2 flex items-center gap-1 bg-emerald-500/10 inline-flex px-2 py-1 rounded-md border border-emerald-500/20">
-                                <i class="ph-bold ph-trend-up"></i> +4.2% vs mes anterior
+                            <!-- ID Agregado para JS -->
+                            <h3 id="net-worth" class="text-3xl font-bold text-white tracking-tight">$0.00</h3>
+                            <p id="net-trend" class="text-xs text-emerald-400 mt-2 flex items-center gap-1 bg-emerald-500/10 inline-flex px-2 py-1 rounded-md border border-emerald-500/20">
+                                <i class="ph-bold ph-trend-up"></i> Calculando...
                             </p>
                         </div>
                         
@@ -204,14 +203,16 @@
                                     <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center"><i class="ph-bold ph-arrow-down-left"></i></div>
                                     <p class="text-sm text-white font-medium">Ingresos</p>
                                 </div>
-                                <span class="text-sm font-bold text-emerald-400">+$3,200</span>
+                                <!-- ID Agregado para JS -->
+                                <span id="income-amount" class="text-sm font-bold text-emerald-400">+$0</span>
                             </div>
                             <div class="flex justify-between items-center p-3 rounded-xl bg-gradient-to-r from-red-500/10 to-transparent border border-red-500/20">
                                 <div class="flex items-center gap-3">
                                     <div class="w-8 h-8 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center"><i class="ph-bold ph-arrow-up-right"></i></div>
                                     <p class="text-sm text-white font-medium">Gastos</p>
                                 </div>
-                                <span class="text-sm font-bold text-white">-$1,450</span>
+                                <!-- ID Agregado para JS -->
+                                <span id="expense-amount" class="text-sm font-bold text-white">-$0</span>
                             </div>
                         </div>
                     </div>
@@ -223,44 +224,19 @@
                         <h2 class="text-lg font-semibold text-white flex items-center gap-2">
                             <i class="ph-fill ph-check-square-offset text-purple-400"></i> Micro Resoluciones Diarias
                         </h2>
-                        <span class="text-sm text-gray-400">Progreso: 60%</span>
+                        <span id="progress-text" class="text-sm text-gray-400">Progreso: 0%</span>
                     </div>
                     
                     <!-- Barra de progreso -->
                     <div class="w-full h-1.5 bg-white/5 rounded-full mb-6 overflow-hidden">
-                        <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full w-[60%] shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
+                        <div id="progress-bar" class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full w-[0%] shadow-[0_0_10px_rgba(168,85,247,0.5)] transition-all duration-500"></div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                        <!-- Tarea 1 -->
-                        <label class="cursor-pointer group flex items-start gap-3 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-purple-500/30 transition-all relative overflow-hidden">
-                            <input type="checkbox" checked class="mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-900 accent-purple-500">
-                            <div>
-                                <p class="text-sm font-medium text-gray-500 line-through">Revisar finanzas en Excel</p>
-                                <p class="text-xs text-gray-600 mt-1 flex items-center gap-1"><i class="ph-fill ph-folder text-emerald-500/50"></i> Administración</p>
-                            </div>
-                        </label>
-
-                        <!-- Tarea 2 -->
-                        <label class="cursor-pointer group flex items-start gap-3 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-purple-500/30 transition-all">
-                            <input type="checkbox" class="mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-900 accent-purple-500">
-                            <div>
-                                <p class="text-sm font-medium text-white group-hover:text-purple-300 transition-colors">Leer "Padre Rico, Padre Pobre" (20 págs)</p>
-                                <p class="text-xs text-gray-500 mt-1 flex items-center gap-1"><i class="ph-fill ph-book-open text-blue-400"></i> Desarrollo Personal</p>
-                            </div>
-                        </label>
-
-                        <!-- Tarea 3 -->
-                        <label class="cursor-pointer group flex items-start gap-3 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-purple-500/30 transition-all">
-                            <input type="checkbox" class="mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-900 accent-purple-500">
-                            <div>
-                                <p class="text-sm font-medium text-white group-hover:text-purple-300 transition-colors">Avanzar módulo de Python / FastAPI</p>
-                                <p class="text-xs text-gray-500 mt-1 flex items-center gap-1"><i class="ph-fill ph-code text-orange-400"></i> Proyecto APH</p>
-                            </div>
-                        </label>
-
-                        <!-- Añadir Tarea -->
-                        <button class="flex items-center justify-center gap-2 p-4 rounded-2xl border border-dashed border-white/20 text-gray-400 hover:text-white hover:border-white/40 hover:bg-white/5 transition-all">
+                    <!-- CONTENEDOR DINÁMICO: Aquí se inyectarán las tareas con JS -->
+                    <div id="tasks-container" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                        
+                        <!-- Añadir Tarea (Botón Fijo) -->
+                        <button id="btn-open-task-modal" class="flex items-center justify-center gap-2 p-4 rounded-2xl border border-dashed border-white/20 text-gray-400 hover:text-white hover:border-white/40 hover:bg-white/5 transition-all h-full min-h-[80px]">
                             <i class="ph ph-plus"></i> Nueva Resolución
                         </button>
                     </div>
@@ -279,19 +255,19 @@
                         <!-- Mood Tracker -->
                         <div>
                             <p class="text-sm text-gray-400 mb-2">¿Cómo te sientes hoy?</p>
-                            <div class="flex gap-2">
-                                <button class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-green-500/20 hover:border-green-500/30 hover:text-green-400 transition-all text-xl grayscale hover:grayscale-0">😄</button>
-                                <button class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center bg-blue-500/20 border-blue-500/30 text-blue-400 transition-all text-xl">🙂</button>
-                                <button class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-gray-500/20 hover:border-gray-500/30 transition-all text-xl grayscale hover:grayscale-0">😐</button>
-                                <button class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-red-500/20 hover:border-red-500/30 transition-all text-xl grayscale hover:grayscale-0">😫</button>
+                            <div id="mood-container" class="flex gap-2">
+                                <button data-mood="excellent" class="mood-btn w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-green-500/20 hover:border-green-500/30 hover:text-green-400 transition-all text-xl grayscale hover:grayscale-0">😄</button>
+                                <button data-mood="good" class="mood-btn w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-blue-500/20 hover:border-blue-500/30 hover:text-blue-400 transition-all text-xl grayscale hover:grayscale-0">🙂</button>
+                                <button data-mood="neutral" class="mood-btn w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-gray-500/20 hover:border-gray-500/30 transition-all text-xl grayscale hover:grayscale-0">😐</button>
+                                <button data-mood="bad" class="mood-btn w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-red-500/20 hover:border-red-500/30 transition-all text-xl grayscale hover:grayscale-0">😫</button>
                             </div>
                         </div>
 
                         <!-- Quick Journal -->
                         <div>
-                            <textarea class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-pink-500/50 focus:ring-1 focus:ring-pink-500/50 transition-all resize-none h-24" placeholder="¿Cuál es tu mayor aprendizaje hoy o por qué estás agradecido?"></textarea>
+                            <textarea id="journal-input" class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-pink-500/50 focus:ring-1 focus:ring-pink-500/50 transition-all resize-none h-24" placeholder="¿Cuál es tu mayor aprendizaje hoy o por qué estás agradecido?"></textarea>
                             <div class="flex justify-end mt-2">
-                                <button class="px-4 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded-lg transition-colors">
+                                <button id="btn-save-journal" class="px-4 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded-lg transition-colors">
                                     Guardar entrada
                                 </button>
                             </div>
@@ -299,39 +275,51 @@
                     </div>
                 </div>
 
-                <!-- 5. Próximos Eventos / Calendario -->
+                <!-- 5. Próximos Eventos / Calendario (Contenedor Dinámico Preparado) -->
                 <div class="glass-card rounded-3xl p-6 md:col-span-2 xl:col-span-2">
                     <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4">
                         <i class="ph-fill ph-calendar-check text-blue-400"></i> Próximos Bloques
                     </h2>
                     
-                    <div class="space-y-3">
-                        <div class="flex items-stretch gap-3 group">
-                            <div class="flex flex-col items-center justify-center w-14 bg-blue-500/10 border border-blue-500/20 rounded-xl py-2 shrink-0">
-                                <span class="text-xs text-blue-400 font-medium">10:00</span>
-                                <span class="text-xs text-gray-500">AM</span>
-                            </div>
-                            <div class="flex-1 bg-white/5 border border-white/5 rounded-xl p-3 group-hover:border-blue-500/30 transition-colors">
-                                <p class="text-sm font-semibold text-white">Revisión de Código</p>
-                                <p class="text-xs text-gray-400 mt-0.5">Arquitectura de la Base de Datos</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-stretch gap-3 group">
-                            <div class="flex flex-col items-center justify-center w-14 bg-white/5 border border-white/10 rounded-xl py-2 shrink-0">
-                                <span class="text-xs text-gray-300 font-medium">14:30</span>
-                                <span class="text-xs text-gray-500">PM</span>
-                            </div>
-                            <div class="flex-1 bg-white/5 border border-white/5 rounded-xl p-3 group-hover:border-white/20 transition-colors">
-                                <p class="text-sm font-semibold text-white opacity-70">Desconexión / Pausa Activa</p>
-                                <p class="text-xs text-gray-500 mt-0.5">Estiramiento y meditación corta</p>
-                            </div>
-                        </div>
+                    <div id="events-container" class="space-y-3">
+                        <p class="text-sm text-gray-500 text-center py-4">Cargando agenda...</p>
+                        <!-- Los eventos se inyectarán aquí vía JS -->
                     </div>
                 </div>
 
             </div>
         </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: CREAR NUEVA TAREA -->
+    <!-- ========================================== -->
+    <div id="task-modal" class="hidden fixed inset-0 bg-[#050505]/80 z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="glass-card rounded-3xl p-6 w-full max-w-md border border-white/10 transform scale-95 transition-transform duration-300" id="task-modal-content">
+            <h3 class="text-lg font-semibold text-white mb-4">Nueva Micro Resolución</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Título de la tarea</label>
+                    <input type="text" id="new-task-title" placeholder="Ej: Leer 20 páginas de código" class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-purple-500/50">
+                </div>
+                
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Categoría (Icono)</label>
+                    <select id="new-task-category" class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-purple-500/50 appearance-none">
+                        <option value="code" class="bg-gray-900">💻 Desarrollo</option>
+                        <option value="book-open" class="bg-gray-900">📚 Lectura</option>
+                        <option value="folder" class="bg-gray-900">📁 Administración</option>
+                        <option value="barbell" class="bg-gray-900">💪 Salud</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex gap-3 justify-end mt-6">
+                <button id="btn-cancel-task" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white transition-colors text-sm">Cancelar</button>
+                <button id="btn-save-task" class="px-4 py-2 rounded-xl bg-purple-500 hover:bg-purple-600 text-white text-sm font-medium transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)]">Guardar Tarea</button>
+            </div>
+        </div>
     </div>
 
     <!-- Scripts -->

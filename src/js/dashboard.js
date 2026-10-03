@@ -1,101 +1,280 @@
 // src/js/dashboard.js
 
-document.addEventListener('DOMContentLoaded', () => {
+// ==========================================
+// CONFIGURACIÓN DE SUPABASE
+// ==========================================
+// Reemplaza con tus credenciales de Supabase. 
+// Idealmente, esto debería venir de tu auth.js si ya lo exportaste desde allí.
+const SUPABASE_URL = 'TU_URL_DE_SUPABASE';
+const SUPABASE_ANON_KEY = 'TU_ANON_KEY_DE_SUPABASE';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+document.addEventListener('DOMContentLoaded', async () => {
 
     // ==========================================
-    // 0. FECHA DINÁMICA (NUEVO)
+    // VERIFICACIÓN DE AUTENTICACIÓN
     // ==========================================
-    const dateElement = document.getElementById('current-date') || document.querySelector('header p.text-gray-400');
+    const { data: { session } } = await supabase.auth.getSession();
     
+    if (!session) {
+        // Redirigir al login si no hay sesión activa
+        console.warn("No hay sesión activa. Redirigiendo...");
+        // window.location.href = '/login.html'; 
+        // Comentar la línea superior temporalmente para pruebas sin auth estricto
+    }
+    const userId = session?.user?.id || null; // Manejo seguro si pruebas sin login
+
+    // ==========================================
+    // 0. FECHA DINÁMICA
+    // ==========================================
+    const dateElement = document.getElementById('current-date');
     if (dateElement) {
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         const today = new Date().toLocaleDateString('es-ES', options);
-        // Capitaliza la primera letra y renderiza
         dateElement.innerHTML = `<i class="ph ph-calendar-blank"></i> ${today.charAt(0).toUpperCase() + today.slice(1)}`;
     }
 
     // ==========================================
-    // 1. SISTEMA DE MICRO RESOLUCIONES (TAREAS)
+    // 1. SISTEMA DE MICRO RESOLUCIONES (CRUD CON SUPABASE)
     // ==========================================
-    const taskCheckboxes = document.querySelectorAll('.task-checkbox, input[type="checkbox"]');
-    const progressBar = document.getElementById('progress-bar') || document.querySelector('.bg-gradient-to-r.from-purple-500');
-    const progressText = document.getElementById('progress-text') || document.querySelector('.text-sm.text-gray-400');
+    const tasksContainer = document.getElementById('tasks-container');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const btnOpenTaskModal = document.getElementById('btn-open-task-modal');
+    const taskModal = document.getElementById('task-modal');
+    const btnCancelTask = document.getElementById('btn-cancel-task');
+    const btnSaveTask = document.getElementById('btn-save-task');
+    
+    let currentTasks = [];
 
-    function updateProgress() {
-        const totalTasks = taskCheckboxes.length;
-        if (totalTasks === 0) return;
+    // --- A. Leer (Read) Tareas desde Supabase ---
+    async function loadTasks() {
+        if (!userId) return; // Salir si no hay usuario
 
-        // Contar checkboxes marcados
-        let completedTasks = 0;
-        taskCheckboxes.forEach(cb => {
-            if (cb.checked) completedTasks++;
-        });
-        
-        // Calcular porcentaje
-        const percentage = Math.round((completedTasks / totalTasks) * 100);
-        
-        // Actualizar barra visual
-        if (progressBar) {
-            progressBar.style.width = `${percentage}%`;
-        }
-        
-        // Actualizar texto
-        if (progressText && progressText.textContent.includes('Progreso')) {
-            progressText.textContent = `Progreso: ${percentage}%`;
+        try {
+            const { data, error } = await supabase
+                .from('tasks')
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            currentTasks = data;
+            renderTasks();
+            updateProgressVisuals();
+        } catch (error) {
+            console.error("Error cargando tareas:", error);
         }
     }
 
-    // Escuchar cambios en los checkboxes
-    taskCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', (e) => {
-            const isChecked = e.target.checked;
+    // --- B. Renderizar Tareas en el DOM ---
+    function renderTasks() {
+        if (!tasksContainer) return;
+
+        // Limpiar contenedor pero guardar el botón de añadir
+        const addButtonHTML = btnOpenTaskModal.outerHTML;
+        tasksContainer.innerHTML = '';
+
+        currentTasks.forEach(task => {
+            // Mapeo de categorías a colores e íconos
+            const categoryStyles = {
+                'code': { icon: 'ph-code', color: 'text-orange-400' },
+                'book-open': { icon: 'ph-book-open', color: 'text-blue-400' },
+                'folder': { icon: 'ph-folder', color: 'text-emerald-500/50' },
+                'barbell': { icon: 'ph-barbell', color: 'text-pink-400' }
+            };
+            const style = categoryStyles[task.category] || { icon: 'ph-check-circle', color: 'text-gray-400' };
             
-            // Búsqueda robusta del título de la tarea (no se rompe si cambias el HTML)
-            const labelContainer = e.target.closest('label');
-            let titleElement;
-            
-            if (labelContainer) {
-                titleElement = labelContainer.querySelector('.task-title') || labelContainer.querySelector('p:first-child');
-            } else {
-                titleElement = e.target.nextElementSibling.querySelector('p:first-child');
-            }
-            
-            if (titleElement) {
-                if (isChecked) {
-                    titleElement.classList.remove('text-white', 'group-hover:text-purple-300');
-                    titleElement.classList.add('text-gray-500', 'line-through');
-                } else {
-                    titleElement.classList.remove('text-gray-500', 'line-through');
-                    titleElement.classList.add('text-white', 'group-hover:text-purple-300');
-                }
-            }
-            
-            updateProgress();
+            const isChecked = task.completed ? 'checked' : '';
+            const titleClass = task.completed ? 'text-gray-500 line-through' : 'text-white group-hover:text-purple-300';
+
+            const taskHTML = `
+                <label class="cursor-pointer group flex items-start justify-between gap-3 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-purple-500/30 transition-all relative overflow-hidden" data-task-id="${task.id}">
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" ${isChecked} class="task-checkbox mt-1 w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-900 accent-purple-500">
+                        <div>
+                            <p class="task-title text-sm font-medium transition-colors ${titleClass}">${task.title}</p>
+                            <p class="text-xs text-gray-500 mt-1 flex items-center gap-1"><i class="ph-fill ${style.icon} ${style.color}"></i> ${task.category}</p>
+                        </div>
+                    </div>
+                    <button class="delete-task-btn text-gray-600 hover:text-red-400 transition-colors" title="Eliminar tarea">
+                        <i class="ph-fill ph-trash"></i>
+                    </button>
+                </label>
+            `;
+            tasksContainer.insertAdjacentHTML('beforeend', taskHTML);
         });
+
+        // Re-insertar el botón de añadir al final
+        tasksContainer.insertAdjacentHTML('beforeend', addButtonHTML);
+        
+        // Re-asignar eventos a los nuevos elementos
+        attachTaskEvents();
+        // Re-asignar evento al botón de abrir modal (ya que fue re-dibujado)
+        document.getElementById('btn-open-task-modal').addEventListener('click', openModal);
+    }
+
+    // --- C. Actualizar y Eliminar (Update & Delete) Eventos ---
+    function attachTaskEvents() {
+        // Eventos para el Checkbox (Update)
+        const checkboxes = tasksContainer.querySelectorAll('.task-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', async (e) => {
+                const label = e.target.closest('label');
+                const taskId = label.dataset.taskId;
+                const isCompleted = e.target.checked;
+                const titleElement = label.querySelector('.task-title');
+
+                // Actualización visual inmediata
+                if (isCompleted) {
+                    titleElement.classList.replace('text-white', 'text-gray-500');
+                    titleElement.classList.replace('group-hover:text-purple-300', 'line-through');
+                } else {
+                    titleElement.classList.replace('text-gray-500', 'text-white');
+                    titleElement.classList.replace('line-through', 'group-hover:text-purple-300');
+                }
+
+                // Actualizar array en memoria para la barra de progreso
+                const taskIndex = currentTasks.findIndex(t => t.id == taskId);
+                if (taskIndex > -1) currentTasks[taskIndex].completed = isCompleted;
+                updateProgressVisuals();
+
+                // Petición a Supabase
+                try {
+                    const { error } = await supabase
+                        .from('tasks')
+                        .update({ completed: isCompleted })
+                        .eq('id', taskId);
+                    
+                    if (error) throw error;
+                } catch (error) {
+                    console.error("Error actualizando tarea:", error);
+                    // Opcional: Revertir UI si falla la BD
+                }
+            });
+        });
+
+        // Eventos para el botón de Eliminar (Delete)
+        const deleteBtns = tasksContainer.querySelectorAll('.delete-task-btn');
+        deleteBtns.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault(); // Evita que se dispare el checkbox
+                e.stopPropagation(); // Evita que el click suba al label
+                
+                const label = e.target.closest('label');
+                const taskId = label.dataset.taskId;
+
+                // Remover visualmente y de memoria inmediatamente para UI fluida
+                label.remove();
+                currentTasks = currentTasks.filter(t => t.id != taskId);
+                updateProgressVisuals();
+
+                // Petición a Supabase
+                try {
+                    const { error } = await supabase
+                        .from('tasks')
+                        .delete()
+                        .eq('id', taskId);
+                    
+                    if (error) throw error;
+                } catch (error) {
+                    console.error("Error eliminando tarea:", error);
+                }
+            });
+        });
+    }
+
+    // --- D. Crear (Create) Nueva Tarea ---
+    function openModal() {
+        taskModal.classList.remove('hidden');
+        setTimeout(() => {
+            taskModal.classList.remove('opacity-0');
+            document.getElementById('task-modal-content').classList.remove('scale-95');
+        }, 10);
+    }
+
+    function closeModal() {
+        taskModal.classList.add('opacity-0');
+        document.getElementById('task-modal-content').classList.add('scale-95');
+        setTimeout(() => {
+            taskModal.classList.add('hidden');
+            // Limpiar inputs
+            document.getElementById('new-task-title').value = '';
+        }, 300);
+    }
+
+    btnOpenTaskModal?.addEventListener('click', openModal);
+    btnCancelTask?.addEventListener('click', closeModal);
+
+    btnSaveTask?.addEventListener('click', async () => {
+        const titleInput = document.getElementById('new-task-title');
+        const categorySelect = document.getElementById('new-task-category');
+        
+        const title = titleInput.value.trim();
+        const category = categorySelect.value;
+
+        if (!title || !userId) return;
+
+        btnSaveTask.textContent = 'Guardando...';
+        btnSaveTask.disabled = true;
+
+        try {
+            const { data, error } = await supabase
+                .from('tasks')
+                .insert([{ user_id: userId, title: title, category: category, completed: false }])
+                .select(); // Devolver el dato insertado
+
+            if (error) throw error;
+
+            if (data) {
+                currentTasks.unshift(data[0]); // Añadir al principio del array
+                renderTasks();
+                updateProgressVisuals();
+            }
+            closeModal();
+        } catch (error) {
+            console.error("Error creando tarea:", error);
+            alert("No se pudo crear la tarea.");
+        } finally {
+            btnSaveTask.textContent = 'Guardar Tarea';
+            btnSaveTask.disabled = false;
+        }
     });
 
-    // Inicializar progreso al cargar
-    updateProgress();
+    // --- E. Lógica Barra de Progreso ---
+    function updateProgressVisuals() {
+        if (currentTasks.length === 0) {
+            if (progressBar) progressBar.style.width = '0%';
+            if (progressText) progressText.textContent = 'Progreso: 0%';
+            return;
+        }
 
+        const completedCount = currentTasks.filter(t => t.completed).length;
+        const percentage = Math.round((completedCount / currentTasks.length) * 100);
+        
+        if (progressBar) progressBar.style.width = `${percentage}%`;
+        if (progressText) progressText.textContent = `Progreso: ${percentage}%`;
+    }
 
+    // Llamada inicial para cargar tareas
+    if (userId) loadTasks();
+
+    
     // ==========================================
-    // 2. TEMPORIZADOR DE DEEP WORK (PRECISIÓN MEJORADA)
+    // 2. TEMPORIZADOR DE DEEP WORK (Sin cambios funcionales, funciona perfecto en cliente)
     // ==========================================
-    const timerDisplay = document.getElementById('timer-display') || document.querySelector('.text-3xl.font-bold.tracking-tighter');
-    const startBtn = document.getElementById('btn-start-timer') || document.querySelector('.bg-indigo-500.hover\\:bg-indigo-600');
-    const stopBtn = document.getElementById('btn-stop-timer') || document.querySelector('.glass.hover\\:bg-white\\/5');
-    const timerCircle = document.getElementById('timer-circle') || document.querySelector('.transition-all.duration-1000');
+    const timerDisplay = document.getElementById('timer-display');
+    const startBtn = document.getElementById('btn-start-timer');
+    const stopBtn = document.getElementById('btn-stop-timer');
+    const timerCircle = document.getElementById('timer-circle');
     
     let timerInterval;
-    let endTime; // Nueva variable para calcular el tiempo real
-    const WORK_TIME = 45 * 60; // 45 minutos en segundos
+    let endTime; 
+    const WORK_TIME = 45 * 60; // 45 minutos
     let timeLeft = WORK_TIME;
     let isRunning = false;
     
-    // Obtener la circunferencia real dinámicamente si es posible, sino usar 283
-    const circleCircumference = timerCircle && typeof timerCircle.getTotalLength === 'function' 
-                                ? timerCircle.getTotalLength() 
-                                : 283;
+    const circleCircumference = timerCircle && typeof timerCircle.getTotalLength === 'function' ? timerCircle.getTotalLength() : 283;
 
     function formatTime(seconds) {
         const mins = Math.floor(seconds / 60);
@@ -104,10 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateTimerDisplay() {
-        if (timerDisplay) {
-            timerDisplay.textContent = formatTime(timeLeft);
-        }
-        
+        if (timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
         if (timerCircle) {
             const timeFraction = timeLeft / WORK_TIME;
             const strokeDashoffset = circleCircumference - (timeFraction * circleCircumference);
@@ -119,18 +295,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isRunning) return;
         isRunning = true;
         
-        // Cambiar el estilo del botón
         if (startBtn) {
             startBtn.textContent = 'Pausar';
             startBtn.classList.remove('bg-indigo-500', 'hover:bg-indigo-600');
             startBtn.classList.add('bg-orange-500', 'hover:bg-orange-600', 'shadow-[0_0_20px_rgba(249,115,22,0.3)]');
         }
 
-        // Lógica precisa usando marcas de tiempo (Date.now)
         endTime = Date.now() + (timeLeft * 1000);
 
         timerInterval = setInterval(() => {
-            // Calcula los segundos restantes reales (no se retrasa si cambias de pestaña)
             const secondsLeft = Math.round((endTime - Date.now()) / 1000);
 
             if (secondsLeft <= 0) {
@@ -150,7 +323,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function pauseTimer() {
         clearInterval(timerInterval);
         isRunning = false;
-        resetStartButton();
         if (startBtn) {
             startBtn.textContent = 'Reanudar';
         }
@@ -166,11 +338,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (startBtn) {
         startBtn.addEventListener('click', () => {
-            if (isRunning) {
-                pauseTimer();
-            } else {
-                startTimer();
-            }
+            if (isRunning) pauseTimer();
+            else startTimer();
         });
     }
 
@@ -183,39 +352,59 @@ document.addEventListener('DOMContentLoaded', () => {
             resetStartButton();
         });
     }
-
-    // Inicializar vista del temporizador al cargar
     updateTimerDisplay();
 
 
     // ==========================================
-    // 3. REGISTRO DE ESTADO DE ÁNIMO (MOOD TRACKER)
+    // 3. REGISTRO DIARIO Y ESTADO DE ÁNIMO (CRUD BASICO)
     // ==========================================
-    const moodContainer = document.querySelector('.space-y-4 .flex.gap-2');
-    
+    const moodContainer = document.getElementById('mood-container');
+    const journalInput = document.getElementById('journal-input');
+    const btnSaveJournal = document.getElementById('btn-save-journal');
+    let currentMood = 'neutral'; // Por defecto
+
     if (moodContainer) {
-        const moodButtons = moodContainer.querySelectorAll('.mood-btn, button');
+        const moodButtons = moodContainer.querySelectorAll('.mood-btn');
         
         moodButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
-                // Limpiar todos los botones
+                // Resetear todos
                 moodButtons.forEach(b => {
-                    b.classList.add('grayscale');
-                    // Remover colores activos anteriores
-                    b.classList.remove('bg-indigo-500/20', 'border-indigo-500/30', 'bg-green-500/20', 'bg-blue-500/20', 'border-green-500/30', 'border-blue-500/30', 'text-green-400', 'text-blue-400');
-                    // Restaurar estado inactivo
-                    b.classList.add('bg-white/5', 'border-white/10');
-                    b.setAttribute('data-active', 'false');
+                    b.classList.add('grayscale', 'bg-white/5', 'border-white/10');
+                    b.classList.remove('bg-indigo-500/20', 'border-indigo-500/30', 'bg-green-500/20', 'bg-blue-500/20', 'bg-red-500/20', 'bg-gray-500/20');
                 });
 
-                // Activar únicamente el botón clickeado
+                // Activar seleccionado
                 const currentBtn = e.currentTarget;
                 currentBtn.classList.remove('grayscale', 'bg-white/5', 'border-white/10');
-                
-                // Color activo estándar
-                currentBtn.classList.add('bg-indigo-500/20', 'border-indigo-500/30');
-                currentBtn.setAttribute('data-active', 'true');
+                currentBtn.classList.add('bg-indigo-500/20', 'border-indigo-500/30'); // Estilo base de selección
+                currentMood = currentBtn.dataset.mood;
             });
+        });
+    }
+
+    if (btnSaveJournal) {
+        btnSaveJournal.addEventListener('click', async () => {
+            const content = journalInput.value.trim();
+            if (!content || !userId) return;
+
+            btnSaveJournal.textContent = 'Guardando...';
+            
+            try {
+                const { error } = await supabase
+                    .from('journal_entries')
+                    .insert([{ user_id: userId, content: content, mood: currentMood }]);
+
+                if (error) throw error;
+                
+                alert('Entrada guardada correctamente.');
+                journalInput.value = ''; // Limpiar textarea
+            } catch (error) {
+                console.error("Error guardando entrada de diario:", error);
+                alert("Hubo un error al guardar la entrada.");
+            } finally {
+                btnSaveJournal.textContent = 'Guardar entrada';
+            }
         });
     }
 });
