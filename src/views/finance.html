@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus OS | Ecosistema Financiero</title>
+    <title>Nexus OS | Command Center</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,17 +11,14 @@
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Chart.js (Para gráficas futuras) -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
-    <!-- Estilos Globales -->
+    <!-- Estilos Globales y Específicos -->
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/dashboard.css">
 </head>
-<body class="antialiased selection:bg-emerald-500 selection:text-white bg-[#050505] overflow-hidden">
+<body class="antialiased selection:bg-indigo-500 selection:text-white bg-[#050505] overflow-hidden">
     
     <div class="bg-glow"></div>
 
@@ -44,372 +41,324 @@
                 <nav class="mt-6 px-2 lg:px-4 space-y-1">
                     <p class="hidden lg:block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-3">Módulos Activos</p>
                     
-                    <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group">
+                    <!-- Command Center Activo -->
+                    <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 group transition-all shadow-[0_0_15px_rgba(99,102,241,0.1)]">
                         <i class="ph-fill ph-squares-four text-xl group-hover:scale-110 transition-transform"></i>
-                        <span class="hidden lg:block font-medium">Command Center</span>
+                        <span class="hidden lg:block font-bold">Command Center</span>
                     </a>
                     <a href="deep-work.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group">
                         <i class="ph ph-timer text-xl group-hover:scale-110 transition-transform"></i>
                         <span class="hidden lg:block font-medium">Deep Work</span>
                     </a>
-                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group">
+                    <a href="resolutions.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group">
                         <i class="ph ph-check-square-offset text-xl group-hover:scale-110 transition-transform"></i>
                         <span class="hidden lg:block font-medium">Micro Resoluciones</span>
                     </a>
-                    
-                    <!-- Módulo Activo -->
-                    <a href="finance.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group transition-all shadow-[0_0_15px_rgba(16,185,129,0.1)]">
-                        <i class="ph-fill ph-wallet text-xl group-hover:scale-110 transition-transform"></i>
-                        <span class="hidden lg:block font-bold">Control Financiero</span>
+                    <a href="finance.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group">
+                        <i class="ph ph-wallet text-xl group-hover:scale-110 transition-transform"></i>
+                        <span class="hidden lg:block font-medium">Control Financiero</span>
                     </a>
-                    
                     <a href="journal.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group">
                         <i class="ph ph-book-open-text text-xl group-hover:scale-110 transition-transform"></i>
                         <span class="hidden lg:block font-medium">Diario & Reflexión</span>
                     </a>
+                    <a href="networking.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group">
+                        <i class="ph ph-users-three text-xl group-hover:scale-110 transition-transform"></i>
+                        <span class="hidden lg:block font-medium">Networking</span>
+                    </a>
+
+                    <!-- Separador -->
+                    <div class="h-px w-full bg-white/5 my-4"></div>
+
+                    <!-- Módulos en Desarrollo -->
+                    <p class="hidden lg:block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-3">Desarrollo (Próximamente)</p>
+                    
+                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-500 hover:text-gray-300 transition-all group">
+                        <i class="ph ph-brain text-xl"></i>
+                        <span class="hidden lg:block font-medium text-sm">Potencial Humano (APH)</span>
+                        <i class="ph-fill ph-lock-key hidden lg:block ml-auto text-xs opacity-50"></i>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-500 hover:text-gray-300 transition-all group">
+                        <i class="ph ph-chart-polar text-xl"></i>
+                        <span class="hidden lg:block font-medium text-sm">ZenHabit Analytics</span>
+                        <i class="ph-fill ph-lock-key hidden lg:block ml-auto text-xs opacity-50"></i>
+                    </a>
                 </nav>
             </div>
+
+            <!-- Footer del Sidebar -->
             <div class="p-4 border-t border-white/5 space-y-2">
                 <button id="btn-settings" class="w-full flex items-center justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
                     <i class="ph ph-gear text-xl"></i>
                     <span class="hidden lg:block font-medium">Configuración</span>
                 </button>
+                <button onclick="logout()" class="w-full flex items-center justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                    <i class="ph ph-sign-out text-xl"></i>
+                    <span class="hidden lg:block font-medium">Desconectar</span>
+                </button>
             </div>
         </aside>
 
         <!-- ========================================== -->
-        <!-- MAIN CONTENT (ECOSISTEMA FINANCIERO) -->
+        <!-- MAIN CONTENT -->
         <!-- ========================================== -->
         <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-10 relative flex flex-col h-full custom-scrollbar">
             
-            <!-- HEADER -->
+            <!-- Header del Dashboard -->
             <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 shrink-0">
                 <div>
-                    <h1 class="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-                        <i class="ph-fill ph-chart-polar text-emerald-500"></i> Inteligencia Financiera
-                    </h1>
-                    <p class="text-gray-400 text-sm mt-1">Ecosistema de control patrimonial, presupuestos y desarrollo.</p>
+                    <h1 class="text-3xl font-bold text-white tracking-tight">Bienvenido de nuevo</h1>
+                    <p id="current-date" class="text-gray-400 text-sm mt-1 flex items-center gap-2">
+                        <i class="ph ph-calendar-blank"></i> Cargando fecha...
+                    </p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <button id="btn-export-report" class="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-sm font-medium transition-colors flex items-center gap-2">
-                        <i class="ph ph-file-csv text-lg"></i> Exportar
+                <div class="flex items-center gap-4">
+                    <div class="hidden md:flex items-center px-4 py-2 bg-white/5 border border-white/10 rounded-full">
+                        <i class="ph ph-magnifying-glass text-gray-400 mr-2"></i>
+                        <input type="text" placeholder="Comando rápido (Ej: /tarea)" class="bg-transparent border-none text-sm text-white placeholder-gray-500 focus:outline-none w-48">
+                    </div>
+                    
+                    <button id="btn-notifications" class="w-10 h-10 rounded-full glass flex items-center justify-center text-gray-400 hover:text-white transition-colors relative">
+                        <i class="ph ph-bell text-xl"></i>
+                        <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-pink-500 rounded-full border-2 border-[#050505]"></span>
                     </button>
-                    <!-- BOTÓN PRINCIPAL PARA EL MODAL -->
-                    <button id="btn-open-finance-modal" class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] flex items-center gap-2">
-                        <i class="ph-bold ph-plus text-lg"></i> Registrar Dato
-                    </button>
+                    <div id="btn-profile" class="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 border border-white/10 flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
+                        <span class="text-white font-bold text-sm">DC</span>
+                    </div>
                 </div>
             </header>
 
-            <!-- GRID PRINCIPAL DE ANÁLISIS -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
+            <!-- Grid Principal -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 min-h-0">
                 
-                <!-- SECCIÓN SUPERIOR: KPIs ALGORÍTMICOS -->
-                <div class="lg:col-span-12 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                <!-- 1. Deep Work Widget -->
+                <div class="glass-card rounded-3xl p-6 md:col-span-2 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl -mt-10 -mr-10 transition-all group-hover:bg-indigo-500/20"></div>
                     
-                    <!-- Flujo Libre -->
-                    <div class="glass-card rounded-3xl p-6 relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mt-10 -mr-10 transition-all group-hover:bg-emerald-500/20"></div>
-                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2 relative z-10">Flujo de Caja Libre</p>
-                        <h2 id="kpi-fcf" class="text-4xl font-bold text-white tracking-tighter relative z-10">$0</h2>
-                        <div class="mt-4 flex justify-between text-xs font-mono text-gray-500 border-t border-white/5 pt-3 relative z-10">
-                            <span>Ingresos: <span id="kpi-total-income" class="text-emerald-400">$0</span></span>
-                            <span>Costos: <span id="kpi-total-expense" class="text-red-400">$0</span></span>
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                                <i class="ph-fill ph-timer text-indigo-400"></i> Estado de Flujo
+                            </h2>
+                            <p class="text-xs text-gray-400 mt-1">Sesión actual de Deep Work</p>
                         </div>
+                        <span class="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-300 text-xs font-medium border border-indigo-500/20 flex items-center gap-1">
+                            <i class="ph-fill ph-fire text-orange-400"></i> Racha: 4 días
+                        </span>
                     </div>
-
-                    <!-- Tasa de Ahorro -->
-                    <div class="glass-card rounded-3xl p-6 relative">
-                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Tasa de Ahorro / Inversión</p>
-                        <h2 id="kpi-savings-rate" class="text-4xl font-bold text-white tracking-tighter">0.0%</h2>
-                        <div class="mt-4 w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                            <div id="kpi-savings-bar" class="h-full bg-emerald-500 w-[0%] transition-all duration-1000"></div>
-                        </div>
-                        <p class="text-[10px] text-gray-500 mt-2 uppercase">Ideal: > 20%</p>
-                    </div>
-
-                    <!-- Regla 50/30/20 -->
-                    <div class="glass-card rounded-3xl p-6">
-                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Distribución 50/30/20</p>
-                        <div class="space-y-3">
-                            <div>
-                                <div class="flex justify-between text-xs mb-1">
-                                    <span class="text-gray-300">Costos Fijos (Necesidad)</span>
-                                    <span id="kpi-rule-needs" class="font-bold text-white">0%</span>
-                                </div>
-                                <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden"><div id="bar-needs" class="h-full bg-blue-500 w-0"></div></div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between text-xs mb-1">
-                                    <span class="text-gray-300">Variables (Deseos)</span>
-                                    <span id="kpi-rule-wants" class="font-bold text-white">0%</span>
-                                </div>
-                                <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden"><div id="bar-wants" class="h-full bg-orange-500 w-0"></div></div>
+                    
+                    <div class="flex flex-col sm:flex-row items-center gap-8">
+                        <div class="relative w-36 h-36 flex items-center justify-center shrink-0">
+                            <svg class="w-full h-full transform -rotate-90 drop-shadow-[0_0_15px_rgba(99,102,241,0.3)]" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="6" />
+                                <circle id="timer-circle" cx="50" cy="50" r="45" fill="none" stroke="#6366f1" stroke-width="6" stroke-dasharray="283" stroke-dashoffset="90" stroke-linecap="round" class="transition-all duration-1000" />
+                            </svg>
+                            <div class="absolute flex flex-col items-center">
+                                <span id="timer-display" class="text-3xl font-bold text-white tracking-tighter">45:00</span>
+                                <span class="text-[10px] uppercase tracking-widest text-gray-400 mt-1">Enfoque</span>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Runway / Libertad Financiera -->
-                    <div class="glass-card rounded-3xl p-6 bg-gradient-to-b from-white/5 to-transparent border border-emerald-500/20">
-                        <p class="text-xs font-semibold text-emerald-400 uppercase tracking-widest mb-2"><i class="ph-fill ph-rocket-launch"></i> Runway Operativo</p>
-                        <h2 id="kpi-runway" class="text-3xl font-bold text-white tracking-tighter">0 Meses</h2>
-                        <p class="text-xs text-gray-400 mt-1">De supervivencia con gastos fijos</p>
-                        <div class="mt-4 border-t border-white/5 pt-3">
-                            <p class="text-[10px] text-gray-500 uppercase mb-1">Número FI (Regla 4%)</p>
-                            <p id="kpi-fi-number" class="text-sm font-mono text-emerald-300 font-bold">$0</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- COLUMNA IZQUIERDA: GRÁFICAS Y LIBRO MAYOR (INGRESOS/GASTOS) -->
-                <div class="lg:col-span-8 flex flex-col gap-6">
-                    
-                    <!-- Gráfica Analítica -->
-                    <div class="glass-card rounded-3xl p-6 h-80 flex flex-col">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Distribución de Capital</h3>
-                            <select class="bg-black/30 border border-white/10 rounded-lg text-xs text-gray-300 p-1 outline-none">
-                                <option>Este Mes</option>
-                                <option>Histórico</option>
-                            </select>
-                        </div>
-                        <div class="flex-1 relative w-full h-full">
-                            <canvas id="financeMainChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Libro Mayor: Listados Editables -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         
-                        <!-- Panel de Ingresos -->
-                        <div class="glass-card rounded-3xl p-6 flex flex-col h-[400px]">
-                            <div class="flex justify-between items-center mb-4 border-b border-white/5 pb-3">
-                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                                    <i class="ph-bold ph-arrow-down-left text-emerald-400 text-lg"></i> Ingresos
-                                </h3>
-                                <span class="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-md" id="lbl-total-incomes">0 Registros</span>
-                            </div>
-                            <div id="list-incomes" class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                                <!-- Elemento Vacío por Defecto -->
-                                <div class="flex flex-col items-center justify-center h-full opacity-50">
-                                    <i class="ph-thin ph-receipt text-4xl text-gray-500 mb-2"></i>
-                                    <p class="text-xs text-gray-400 text-center">Sin ingresos registrados.<br>Usa "Registrar Dato".</p>
+                        <div class="flex-1 w-full space-y-3 z-10">
+                            <div class="grid grid-cols-2 gap-3 mb-4">
+                                <div class="bg-white/5 p-3 rounded-xl border border-white/5">
+                                    <p class="text-xs text-gray-400 mb-1">Total Hoy</p>
+                                    <p class="text-lg font-semibold text-white">0h 0m</p>
+                                </div>
+                                <div class="bg-white/5 p-3 rounded-xl border border-white/5">
+                                    <p class="text-xs text-gray-400 mb-1">Distracciones</p>
+                                    <p class="text-lg font-semibold text-emerald-400">0</p>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Panel de Gastos -->
-                        <div class="glass-card rounded-3xl p-6 flex flex-col h-[400px]">
-                            <div class="flex justify-between items-center mb-4 border-b border-white/5 pb-3">
-                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                                    <i class="ph-bold ph-arrow-up-right text-red-400 text-lg"></i> Gastos & Costos
-                                </h3>
-                                <span class="text-xs bg-red-500/10 text-red-400 px-2 py-1 rounded-md" id="lbl-total-expenses">0 Registros</span>
-                            </div>
-                            <div id="list-expenses" class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                                <!-- Elemento Vacío por Defecto -->
-                                <div class="flex flex-col items-center justify-center h-full opacity-50">
-                                    <i class="ph-thin ph-shopping-cart text-4xl text-gray-500 mb-2"></i>
-                                    <p class="text-xs text-gray-400 text-center">Sin gastos registrados.</p>
-                                </div>
+                            <div class="flex gap-2">
+                                <button id="btn-start-timer" class="flex-1 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-semibold transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_25px_rgba(99,102,241,0.5)]">
+                                    Iniciar
+                                </button>
+                                <button id="btn-stop-timer" class="px-4 py-2.5 rounded-xl glass hover:bg-white/5 text-gray-300 transition-colors">
+                                    <i class="ph-bold ph-stop"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- COLUMNA DERECHA: METAS, PROYECTOS Y HORARIO -->
-                <div class="lg:col-span-4 flex flex-col gap-6">
+                <!-- 2. Control Financiero -->
+                <div class="glass-card rounded-3xl p-6 md:col-span-1 xl:col-span-2 relative z-10">
+                    <div class="flex justify-between items-start mb-6">
+                        <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                            <i class="ph-fill ph-wallet text-emerald-400"></i> Finanzas
+                        </h2>
+                        <button id="btn-finance-action" class="text-gray-400 hover:text-white transition-colors"><i class="ph ph-dots-three text-xl"></i></button>
+                    </div>
                     
-                    <!-- Objetivos y Metas de Capital -->
-                    <div class="glass-card rounded-3xl p-6 flex-1 max-h-[400px] flex flex-col">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider">
-                                <i class="ph-fill ph-target text-blue-400 text-lg"></i> Proyectos / Metas
-                            </h3>
-                            <button class="text-gray-400 hover:text-white transition-colors"><i class="ph ph-plus"></i></button>
+                    <div class="flex flex-col sm:flex-row gap-6">
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-400 mb-1">Patrimonio Neto Activo</p>
+                            <h3 id="net-worth" class="text-3xl font-bold text-white tracking-tight">$0.00</h3>
+                            <p id="net-trend" class="text-xs text-emerald-400 mt-2 flex items-center gap-1 bg-emerald-500/10 inline-flex px-2 py-1 rounded-md border border-emerald-500/20">
+                                <i class="ph-bold ph-trend-up"></i> Calculando...
+                            </p>
                         </div>
-                        <div id="list-goals" class="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-                             <div class="flex flex-col items-center justify-center h-full opacity-50">
-                                <p class="text-xs text-gray-400 text-center">Define tus fondos de emergencia o proyectos.</p>
+                        
+                        <div class="flex-1 space-y-3">
+                            <div class="flex justify-between items-center p-3 rounded-xl bg-gradient-to-r from-emerald-500/10 to-transparent border border-emerald-500/20">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center"><i class="ph-bold ph-arrow-down-left"></i></div>
+                                    <p class="text-sm text-white font-medium">Ingresos</p>
+                                </div>
+                                <span id="income-amount" class="text-sm font-bold text-emerald-400">+$0</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 rounded-xl bg-gradient-to-r from-red-500/10 to-transparent border border-red-500/20">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center"><i class="ph-bold ph-arrow-up-right"></i></div>
+                                    <p class="text-sm text-white font-medium">Gastos</p>
+                                </div>
+                                <span id="expense-amount" class="text-sm font-bold text-white">-$0</span>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Programación / Valor del Tiempo -->
-                    <div class="glass-card rounded-3xl p-6 flex-1 max-h-[400px] flex flex-col">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider">
-                                <i class="ph-fill ph-clock text-orange-400 text-lg"></i> Agenda de Valor
-                            </h3>
-                            <button class="text-gray-400 hover:text-white transition-colors"><i class="ph ph-plus"></i></button>
-                        </div>
-                        <div id="list-schedule" class="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-                             <div class="flex flex-col items-center justify-center h-full opacity-50">
-                                <p class="text-xs text-gray-400 text-center">Registra actividades constantes o de interés.</p>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
+
+                <!-- 3. Micro Resoluciones (Tareas Atómicas) -->
+                <div class="glass-card rounded-3xl p-6 md:col-span-2 lg:col-span-3 xl:col-span-4 relative z-10 flex flex-col">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                            <i class="ph-fill ph-check-square-offset text-purple-400"></i> Micro Resoluciones Diarias
+                        </h2>
+                        <span id="progress-text" class="text-sm text-gray-400">Progreso: 0%</span>
+                    </div>
+                    
+                    <!-- Barra de progreso -->
+                    <div class="w-full h-1.5 bg-white/5 rounded-full mb-6 overflow-hidden">
+                        <div id="progress-bar" class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full w-[0%] shadow-[0_0_10px_rgba(168,85,247,0.5)] transition-all duration-500"></div>
+                    </div>
+
+                    <!-- Contenedor dinámico de Tareas -->
+                    <div id="tasks-container" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 flex-1 overflow-y-auto custom-scrollbar pr-2">
+                        <button id="btn-open-task-modal" class="flex items-center justify-center gap-2 p-4 rounded-2xl border border-dashed border-white/20 text-gray-400 hover:text-white hover:border-white/40 hover:bg-white/5 transition-all h-full min-h-[80px]">
+                            <i class="ph ph-plus"></i> Nueva Resolución
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4. Registro Diario / Estado de Ánimo -->
+                <div class="glass-card rounded-3xl p-6 md:col-span-2 xl:col-span-2 relative z-10">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                            <i class="ph-fill ph-notebook text-pink-400"></i> Registro Diario
+                        </h2>
+                        <span class="text-xs text-gray-400 border border-white/10 px-2 py-1 rounded-md">Hoy</span>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <!-- Mood Tracker -->
+                        <div>
+                            <p class="text-sm text-gray-400 mb-2">¿Cómo te sientes hoy?</p>
+                            <div id="mood-container" class="flex gap-2">
+                                <button data-mood="excellent" class="mood-btn w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-green-500/20 hover:border-green-500/30 hover:text-green-400 transition-all text-xl grayscale hover:grayscale-0 focus:outline-none focus:ring-1 focus:ring-green-500/50">😄</button>
+                                <button data-mood="good" class="mood-btn w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-blue-500/20 hover:border-blue-500/30 hover:text-blue-400 transition-all text-xl grayscale hover:grayscale-0 focus:outline-none focus:ring-1 focus:ring-blue-500/50">🙂</button>
+                                <button data-mood="neutral" class="mood-btn w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-gray-500/20 hover:border-gray-500/30 transition-all text-xl grayscale hover:grayscale-0 focus:outline-none focus:ring-1 focus:ring-gray-500/50">😐</button>
+                                <button data-mood="bad" class="mood-btn w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-red-500/20 hover:border-red-500/30 transition-all text-xl grayscale hover:grayscale-0 focus:outline-none focus:ring-1 focus:ring-red-500/50">😫</button>
+                            </div>
+                        </div>
+
+                        <!-- Quick Journal -->
+                        <div>
+                            <textarea id="journal-input" class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-pink-500/50 focus:ring-1 focus:ring-pink-500/50 transition-all resize-none h-24 custom-scrollbar" placeholder="¿Cuál es tu mayor aprendizaje hoy o por qué estás agradecido?"></textarea>
+                            <div class="flex justify-end mt-2">
+                                <button id="btn-save-journal" class="px-4 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded-lg transition-colors">
+                                    Guardar entrada
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. Próximos Eventos / Calendario -->
+                <div class="glass-card rounded-3xl p-6 md:col-span-2 xl:col-span-2 relative z-10 flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                            <i class="ph-fill ph-calendar-check text-blue-400"></i> Próximos Bloques
+                        </h2>
+                        <!-- Botón para añadir evento conectado a JS -->
+                        <button id="btn-add-event" class="text-gray-400 hover:text-white transition-colors" title="Añadir evento">
+                            <i class="ph ph-plus text-lg"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="events-container" class="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-2">
+                        <p class="text-sm text-gray-500 text-center py-4">Cargando agenda...</p>
+                        <!-- Los eventos se inyectarán aquí vía JS -->
+                    </div>
+                </div>
+
             </div>
         </main>
     </div>
 
     <!-- ========================================== -->
-    <!-- SUPER MODAL MULTIPROPÓSITO: REGISTRAR DATO -->
+    <!-- COMPONENTES DE UI (MODALES Y TOASTS) -->
     <!-- ========================================== -->
-    <div id="finance-modal" class="hidden fixed inset-0 bg-[#050505]/90 z-[100] flex items-center justify-center backdrop-blur-md opacity-0 transition-opacity duration-300">
-        <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-2xl border border-white/10 transform scale-95 transition-transform duration-300 relative" id="finance-modal-content">
+
+    <!-- Contenedor de Toasts (Notificaciones Flotantes) -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- Modal Dinámico Multipropósito -->
+    <div id="dynamic-modal" class="hidden fixed inset-0 bg-[#050505]/80 z-[60] flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="glass-card rounded-3xl p-6 w-full max-w-md border border-white/10 transform scale-95 transition-transform duration-300 relative overflow-hidden" id="dynamic-modal-content">
+            <div id="dynamic-modal-glow" class="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -mt-10 -mr-10 opacity-20 pointer-events-none"></div>
             
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-white flex items-center gap-2">
-                    <i class="ph-fill ph-database text-emerald-400"></i> Entrada de Datos
-                </h2>
-                <button id="btn-close-finance-modal" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
-                    <i class="ph ph-x"></i>
+            <div class="flex justify-between items-center mb-5 relative z-10">
+                <h3 id="dynamic-modal-title" class="text-xl font-bold text-white flex items-center gap-2">Título</h3>
+                <button id="btn-close-dynamic-modal" class="text-gray-500 hover:text-white transition-colors p-1 bg-white/5 rounded-lg">
+                    <i class="ph ph-x text-lg"></i>
                 </button>
             </div>
-
-            <!-- Navegación por Pestañas (Tabs) -->
-            <div class="flex gap-2 p-1 bg-black/40 border border-white/5 rounded-xl mb-6">
-                <button class="tab-btn flex-1 py-2 rounded-lg text-sm font-bold bg-white/10 text-white shadow-sm transition-all" data-target="form-tx">Transacción</button>
-                <button class="tab-btn flex-1 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white transition-all" data-target="form-goal">Meta/Proyecto</button>
-                <button class="tab-btn flex-1 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white transition-all" data-target="form-schedule">Horario</button>
+            
+            <div id="dynamic-modal-body" class="text-gray-300 text-sm space-y-4 relative z-10">
+                <!-- Contenido dinámico inyectado por JS -->
             </div>
-
-            <!-- CONTENEDOR 1: TRANSACCIONES (Ingresos y Gastos) -->
-            <form id="form-tx" class="modal-form space-y-5">
-                <div class="grid grid-cols-2 gap-4">
-                    <label class="cursor-pointer group">
-                        <input type="radio" name="ftx-type" value="income" class="peer hidden" checked>
-                        <div class="py-3 text-center rounded-xl border border-white/10 text-gray-400 peer-checked:bg-emerald-500/20 peer-checked:border-emerald-500/50 peer-checked:text-emerald-400 transition-all font-bold">
-                            Ingreso (+)
-                        </div>
-                    </label>
-                    <label class="cursor-pointer group">
-                        <input type="radio" name="ftx-type" value="expense" class="peer hidden">
-                        <div class="py-3 text-center rounded-xl border border-white/10 text-gray-400 peer-checked:bg-red-500/20 peer-checked:border-red-500/50 peer-checked:text-red-400 transition-all font-bold">
-                            Costo / Gasto (-)
-                        </div>
-                    </label>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Naturaleza</label>
-                        <select id="ftx-nature" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500/50 appearance-none">
-                            <option value="Fijo">Fijo / Estable</option>
-                            <option value="Variable">Variable</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Monto (COP)</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-3 text-gray-500">$</span>
-                            <input type="number" id="ftx-amount" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 pl-8 text-white font-mono focus:outline-none focus:border-emerald-500/50" placeholder="0.00">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Categoría / Cuenta</label>
-                        <select id="ftx-category" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500/50 appearance-none">
-                            <option value="Salario">Salario / Honorarios</option>
-                            <option value="Vivienda">51 - Vivienda / Arriendo</option>
-                            <option value="Servicios">51 - Servicios Públicos</option>
-                            <option value="Comida">51 - Alimentación</option>
-                            <option value="Aseo">52 - Aseo y Mantenimiento</option>
-                            <option value="Ahorro">Ahorro / Fondo Emergencia</option>
-                            <option value="Otros">Otros</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Responsable / Dueño</label>
-                        <input type="text" id="ftx-owner" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500/50" placeholder="Ej: Daniel, Daya, Compartido">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Concepto Detallado</label>
-                    <input type="text" id="ftx-desc" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500/50" placeholder="Ej: Arriendo mes de Octubre">
-                </div>
-
-                <div class="flex justify-end pt-4">
-                    <button type="submit" class="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold transition-all shadow-lg shadow-emerald-500/20">Registrar Transacción</button>
-                </div>
-            </form>
-
-            <!-- CONTENEDOR 2: METAS / PROYECTOS (Oculto por defecto) -->
-            <form id="form-goal" class="modal-form space-y-5 hidden">
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <label class="cursor-pointer">
-                        <input type="radio" name="fg-type" value="Necesario" class="peer hidden" checked>
-                        <div class="py-2 text-center rounded-xl border border-white/10 text-gray-400 peer-checked:bg-blue-500/20 peer-checked:border-blue-500/50 peer-checked:text-blue-400 transition-all text-sm font-bold">Proyecto Necesario</div>
-                    </label>
-                    <label class="cursor-pointer">
-                        <input type="radio" name="fg-type" value="Interés" class="peer hidden">
-                        <div class="py-2 text-center rounded-xl border border-white/10 text-gray-400 peer-checked:bg-purple-500/20 peer-checked:border-purple-500/50 peer-checked:text-purple-400 transition-all text-sm font-bold">De Interés</div>
-                    </label>
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1 uppercase">Nombre del Proyecto / Meta</label>
-                    <input type="text" id="fg-title" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500/50">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1 uppercase">Monto Objetivo</label>
-                        <input type="number" id="fg-target" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono focus:outline-none focus:border-blue-500/50">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1 uppercase">Ahorro Actual</label>
-                        <input type="number" id="fg-current" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono focus:outline-none focus:border-blue-500/50">
-                    </div>
-                </div>
-                <div class="flex justify-end pt-4">
-                    <button type="submit" class="px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold transition-all shadow-lg shadow-blue-500/20">Guardar Proyecto</button>
-                </div>
-            </form>
-
-            <!-- CONTENEDOR 3: HORARIO (Oculto por defecto) -->
-            <form id="form-schedule" class="modal-form space-y-5 hidden">
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <label class="cursor-pointer">
-                        <input type="radio" name="fs-type" value="Constante" class="peer hidden" checked>
-                        <div class="py-2 text-center rounded-xl border border-white/10 text-gray-400 peer-checked:bg-orange-500/20 peer-checked:border-orange-500/50 peer-checked:text-orange-400 transition-all text-sm font-bold">Actividad Constante</div>
-                    </label>
-                    <label class="cursor-pointer">
-                        <input type="radio" name="fs-type" value="Interés" class="peer hidden">
-                        <div class="py-2 text-center rounded-xl border border-white/10 text-gray-400 peer-checked:bg-pink-500/20 peer-checked:border-pink-500/50 peer-checked:text-pink-400 transition-all text-sm font-bold">De Interés</div>
-                    </label>
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1 uppercase">Actividad</label>
-                    <input type="text" id="fs-activity" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-orange-500/50" placeholder="Ej: Desarrollo Backend">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1 uppercase">Horas por Semana</label>
-                    <input type="number" id="fs-hours" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono focus:outline-none focus:border-orange-500/50">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1 uppercase">Retorno Esperado</label>
-                    <input type="text" id="fs-return" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-orange-500/50" placeholder="Ej: Aumento de salario, portafolio">
-                </div>
-                <div class="flex justify-end pt-4">
-                    <button type="submit" class="px-6 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold transition-all shadow-lg shadow-orange-500/20">Agregar al Horario</button>
-                </div>
-            </form>
+            
+            <div class="mt-8 flex justify-end gap-3 relative z-10" id="dynamic-modal-actions">
+                <button id="btn-confirm-dynamic-modal" class="px-5 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium transition-all shadow-[0_0_15px_rgba(99,102,241,0.3)]">Aceptar</button>
+            </div>
         </div>
     </div>
 
-    <!-- Contenedor Dinámico para Notificaciones Globales -->
-    <div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 pointer-events-none"></div>
+    <!-- Modal Específico: Crear Tarea / Micro Resolución -->
+    <div id="task-modal" class="hidden fixed inset-0 bg-[#050505]/80 z-[60] flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="glass-card rounded-3xl p-6 w-full max-w-md border border-white/10 transform scale-95 transition-transform duration-300 relative overflow-hidden" id="task-modal-content">
+            <h3 class="text-lg font-semibold text-white mb-4 relative z-10 flex items-center gap-2">
+                <i class="ph-fill ph-check-square-offset text-purple-400"></i> Nueva Micro Resolución
+            </h3>
+            
+            <div class="space-y-4 relative z-10">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Título de la tarea</label>
+                    <input type="text" id="new-task-title" placeholder="Ej: Leer 20 páginas de código" class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-purple-500/50">
+                </div>
+                
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Categoría (Icono)</label>
+                    <select id="new-task-category" class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-purple-500/50 appearance-none">
+                        <option value="code" class="bg-gray-900">💻 Desarrollo</option>
+                        <option value="book-open" class="bg-gray-900">📚 Lectura</option>
+                        <option value="folder" class="bg-gray-900">📁 Administración</option>
+                        <option value="barbell" class="bg-gray-900">💪 Salud</option>
+                    </select>
+                </div>
+            </div>
 
-    <!-- Scripts -->
+            <div class="flex gap-3 justify-end mt-6 relative z-10">
+                <button id="btn-cancel-task" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white transition-colors text-sm">Cancelar</button>
+                <button id="btn-save-task" class="px-4 py-2 rounded-xl bg-purple-500 hover:bg-purple-600 text-white text-sm font-medium transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)]">Guardar Tarea</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts Esenciales -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Aquí es donde conectarás el JS que te di en el mensaje anterior (finance_advanced.js), 
-         solo que ahora apuntará a estos IDs precisos y activará el modal correctamente -->
-    <script type="module" src="../js/modules/finance_advanced.js"></script>
+    <script src="../js/auth.js"></script>
+    <script type="module" src="../js/dashboard.js"></script>
 </body>
 </html>
