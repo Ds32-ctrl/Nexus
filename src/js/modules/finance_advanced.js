@@ -13,14 +13,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         goals: [],
         schedule: []
     };
-
+    
+    // SOLUCIÓN AL ERROR: Declarar la instancia del gráfico al inicio del ciclo de vida
+    let chartInstance = null; 
 
     // Utilidades
     const formatCurrency = (num) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(num);
     const sanitize = (str) => str ? str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)) : '';
 
     // ==========================================
-    // 2. CONTROLADOR DE INTERFAZ (UI) - SÍNCRONO
+    // 2. CONTROLADOR DE INTERFAZ (UI)
     // ==========================================
     const UIController = {
         showToast(message, type = 'success') {
@@ -54,13 +56,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // ==========================================
-    // 3. EVENTOS DEL DOM (BINDINGS INICIALES)
+    // 3. EVENTOS DEL DOM (MODALES Y PESTAÑAS)
     // ==========================================
     const modal = document.getElementById('finance-modal');
     const modalContent = document.getElementById('finance-modal-content');
     const actionText = document.getElementById('modal-action-text');
 
-    // Corrección del mapeo de inputs ocultos usando un Diccionario
     const formIdMap = {
         'form-tx': 'ftx-id',
         'form-goal': 'fg-id',
@@ -68,6 +69,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     function openModal(targetTab = 'form-tx', isEdit = false) {
+        if(!modal) return;
+        
         actionText.textContent = isEdit ? 'Editar Registro' : 'Entrada de Datos';
         
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -81,7 +84,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         document.querySelectorAll('.modal-form').forEach(f => f.classList.add('hidden'));
-        document.getElementById(targetTab).classList.remove('hidden');
+        document.getElementById(targetTab)?.classList.remove('hidden');
 
         modal.classList.remove('hidden');
         setTimeout(() => {
@@ -91,20 +94,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function closeModal() {
+        if(!modal) return;
         modal.classList.add('opacity-0');
         modalContent.classList.add('scale-95');
         setTimeout(() => {
             modal.classList.add('hidden');
-            document.getElementById('form-tx').reset();
-            document.getElementById('form-goal').reset();
-            document.getElementById('form-schedule').reset();
-            document.getElementById('ftx-id').value = '';
-            document.getElementById('fg-id').value = '';
-            document.getElementById('fs-id').value = '';
+            document.getElementById('form-tx')?.reset();
+            document.getElementById('form-goal')?.reset();
+            document.getElementById('form-schedule')?.reset();
+            if(document.getElementById('ftx-id')) document.getElementById('ftx-id').value = '';
+            if(document.getElementById('fg-id')) document.getElementById('fg-id').value = '';
+            if(document.getElementById('fs-id')) document.getElementById('fs-id').value = '';
         }, 300);
     }
 
-    // Inicializamos eventos ANTES de bloquearnos con promesas de red
     document.getElementById('btn-open-finance-modal')?.addEventListener('click', () => openModal('form-tx'));
     document.getElementById('btn-add-goal')?.addEventListener('click', () => openModal('form-goal'));
     document.getElementById('btn-add-schedule')?.addEventListener('click', () => openModal('form-schedule'));
@@ -115,23 +118,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         tab.addEventListener('click', (e) => {
             const target = e.currentTarget.dataset.target;
             const hiddenInputId = formIdMap[target];
-            const isEdit = !!document.getElementById(hiddenInputId).value;
+            const isEdit = !!document.getElementById(hiddenInputId)?.value;
             openModal(target, isEdit);
         });
     });
 
     // ==========================================
-    // 4. AUTENTICACIÓN Y CARGA DE DATOS ASÍNCRONA
+    // 4. AUTENTICACIÓN Y CARGA DE DATOS 
     // ==========================================
     try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         if (sessionError || !session) {
-            UIController.showToast('Autenticación fallida o sin sesión. El sistema está inactivo.', 'warning');
-            // Si necesitas forzar el redirect a login, descomenta la siguiente línea:
-            // window.location.href = '/login.html'; 
-            
-            // Retornamos de la lógica asíncrona para no ejecutar fetchEcosystemData(), 
-            // pero los botones ya están enlazados.
+            UIController.showToast('Sesión no detectada. El sistema está inactivo.', 'warning');
             return;
         }
         currentUser = session.user;
@@ -162,7 +160,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             calculateEngine();
         } catch (error) {
-            UIController.showToast('Error sincronizando con el servidor: ' + error.message, 'error');
+            UIController.showToast('Error sincronizando: ' + error.message, 'error');
         }
     }
 
@@ -187,7 +185,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 6. MOTOR ALGORÍTMICO Y MATEMÁTICO
     // ==========================================
     function calculateEngine() {
-        const periodFilter = document.getElementById('chart-period-filter')?.value || 'all';
+        const periodFilter = document.getElementById('chart-period-filter')?.value || 'current';
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
 
@@ -224,7 +222,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         const freeCashFlow = metrics.incomeTotal - metrics.expenseTotal;
-        const realSavings = metrics.savingsAllocated + freeCashFlow;
+        const realSavings = metrics.savingsAllocated + (freeCashFlow > 0 ? freeCashFlow : 0);
         const savingsRate = metrics.incomeTotal > 0 ? (realSavings / metrics.incomeTotal) * 100 : 0;
 
         const pureFixedExpenses = metrics.expenseFixed - metrics.savingsAllocated;
@@ -234,11 +232,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const annualFixedExpense = pureFixedExpenses > 0 ? pureFixedExpenses * 12 : 0;
         const fiNumber = annualFixedExpense * 25;
 
-        let liquidCapital = DB.goals.reduce((acc, goal) => acc + parseFloat(goal.current_amount), 0);
+        let liquidCapital = DB.goals.reduce((acc, goal) => acc + parseFloat(goal.current_amount || 0), 0);
         const runwayMonths = pureFixedExpenses > 0 ? (liquidCapital / pureFixedExpenses) : 0;
 
         renderKPIs(freeCashFlow, metrics, savingsRate, needsRatio, wantsRatio, fiNumber, runwayMonths);
-        renderLists();
+        renderLists(periodFilter, currentMonth, currentYear);
         renderChart(metrics.categoryTotals);
     }
 
@@ -247,33 +245,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ==========================================
     function renderKPIs(fcf, metrics, savingsRate, needsRatio, wantsRatio, fiNumber, runwayMonths) {
         const kpiFcf = document.getElementById('kpi-fcf');
-        kpiFcf.textContent = formatCurrency(fcf);
-        kpiFcf.className = fcf >= 0 ? 'text-4xl font-bold text-emerald-400 tracking-tighter relative z-10' : 'text-4xl font-bold text-red-400 tracking-tighter relative z-10';
+        if(kpiFcf) {
+            kpiFcf.textContent = formatCurrency(fcf);
+            kpiFcf.className = fcf >= 0 ? 'text-4xl font-bold text-emerald-400 tracking-tighter relative z-10' : 'text-4xl font-bold text-red-400 tracking-tighter relative z-10';
+        }
         
-        document.getElementById('kpi-total-income').textContent = formatCurrency(metrics.incomeTotal);
-        document.getElementById('kpi-total-expense').textContent = formatCurrency(metrics.expenseTotal);
+        if(document.getElementById('kpi-total-income')) document.getElementById('kpi-total-income').textContent = formatCurrency(metrics.incomeTotal);
+        if(document.getElementById('kpi-total-expense')) document.getElementById('kpi-total-expense').textContent = formatCurrency(metrics.expenseTotal);
 
-        document.getElementById('kpi-savings-rate').textContent = `${Math.max(0, savingsRate).toFixed(1)}%`;
-        document.getElementById('kpi-savings-bar').style.width = `${Math.max(0, Math.min(savingsRate, 100))}%`;
-        document.getElementById('kpi-savings-bar').className = savingsRate >= 20 ? 'h-full bg-emerald-500 transition-all duration-1000' : (savingsRate >= 10 ? 'h-full bg-yellow-500 transition-all duration-1000' : 'h-full bg-red-500 transition-all duration-1000');
+        if(document.getElementById('kpi-savings-rate')) document.getElementById('kpi-savings-rate').textContent = `${Math.max(0, savingsRate).toFixed(1)}%`;
+        const savBar = document.getElementById('kpi-savings-bar');
+        if(savBar) {
+            savBar.style.width = `${Math.max(0, Math.min(savingsRate, 100))}%`;
+            savBar.className = savingsRate >= 20 ? 'h-full bg-emerald-500 transition-all duration-1000' : (savingsRate >= 10 ? 'h-full bg-yellow-500 transition-all duration-1000' : 'h-full bg-red-500 transition-all duration-1000');
+        }
 
-        document.getElementById('kpi-rule-needs').textContent = `${needsRatio.toFixed(1)}%`;
-        document.getElementById('bar-needs').style.width = `${Math.min(needsRatio, 100)}%`;
-        document.getElementById('bar-needs').className = needsRatio <= 50 ? 'h-full bg-blue-500 transition-all duration-1000' : 'h-full bg-red-500 transition-all duration-1000';
+        if(document.getElementById('kpi-rule-needs')) document.getElementById('kpi-rule-needs').textContent = `${needsRatio.toFixed(1)}%`;
+        const barNeeds = document.getElementById('bar-needs');
+        if(barNeeds) {
+            barNeeds.style.width = `${Math.min(needsRatio, 100)}%`;
+            barNeeds.className = needsRatio <= 50 ? 'h-full bg-blue-500 transition-all duration-1000' : 'h-full bg-red-500 transition-all duration-1000';
+        }
 
-        document.getElementById('kpi-rule-wants').textContent = `${wantsRatio.toFixed(1)}%`;
-        document.getElementById('bar-wants').style.width = `${Math.min(wantsRatio, 100)}%`;
-        document.getElementById('bar-wants').className = wantsRatio <= 30 ? 'h-full bg-orange-500 transition-all duration-1000' : 'h-full bg-red-500 transition-all duration-1000';
+        if(document.getElementById('kpi-rule-wants')) document.getElementById('kpi-rule-wants').textContent = `${wantsRatio.toFixed(1)}%`;
+        const barWants = document.getElementById('bar-wants');
+        if(barWants) {
+            barWants.style.width = `${Math.min(wantsRatio, 100)}%`;
+            barWants.className = wantsRatio <= 30 ? 'h-full bg-orange-500 transition-all duration-1000' : 'h-full bg-red-500 transition-all duration-1000';
+        }
 
-        document.getElementById('kpi-runway').textContent = `${runwayMonths.toFixed(1)} Meses`;
-        document.getElementById('kpi-fi-number').textContent = formatCurrency(fiNumber);
+        if(document.getElementById('kpi-runway')) document.getElementById('kpi-runway').textContent = `${runwayMonths.toFixed(1)} Meses`;
+        if(document.getElementById('kpi-fi-number')) document.getElementById('kpi-fi-number').textContent = formatCurrency(fiNumber);
     }
 
-    function renderLists() {
-        const periodFilter = document.getElementById('chart-period-filter')?.value || 'all';
-        const currentMonth = new Date().getMonth();
-        const currentYear = new Date().getFullYear();
-
+    function renderLists(periodFilter, currentMonth, currentYear) {
         const filteredTx = periodFilter === 'all' 
             ? DB.transactions 
             : DB.transactions.filter(tx => new Date(tx.created_at).getMonth() === currentMonth && new Date(tx.created_at).getFullYear() === currentYear);
@@ -281,97 +286,106 @@ document.addEventListener('DOMContentLoaded', async () => {
         const incomes = filteredTx.filter(tx => tx.type === 'income');
         const expenses = filteredTx.filter(tx => tx.type === 'expense');
 
-        document.getElementById('lbl-total-incomes').textContent = `${incomes.length} Registros`;
-        document.getElementById('lbl-total-expenses').textContent = `${expenses.length} Registros`;
+        if(document.getElementById('lbl-total-incomes')) document.getElementById('lbl-total-incomes').textContent = `${incomes.length} Registros`;
+        if(document.getElementById('lbl-total-expenses')) document.getElementById('lbl-total-expenses').textContent = `${expenses.length} Registros`;
 
         const listIncomes = document.getElementById('list-incomes');
-        if (incomes.length === 0) {
-            listIncomes.innerHTML = `<div class="flex flex-col items-center justify-center h-full opacity-50"><i class="ph-thin ph-receipt text-4xl text-gray-500 mb-2"></i><p class="text-xs text-gray-400 text-center">Sin ingresos en el periodo.</p></div>`;
-        } else {
-            listIncomes.innerHTML = incomes.map(i => `
-                <div class="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-emerald-500/30 transition-colors group relative cursor-pointer edit-btn" data-id="${i.id}" data-type="tx">
-                    <div class="flex-1">
-                        <p class="text-sm font-medium text-white">${sanitize(i.description)} <span class="text-[10px] bg-white/10 text-gray-300 px-2 py-0.5 rounded ml-2">${sanitize(i.owner)}</span></p>
-                        <p class="text-xs text-gray-500">${sanitize(i.category)} | <span class="${i.nature === 'Fijo' ? 'text-emerald-400' : 'text-blue-400'}">${i.nature}</span></p>
+        if (listIncomes) {
+            if (incomes.length === 0) {
+                listIncomes.innerHTML = `<div class="flex flex-col items-center justify-center h-full opacity-50"><i class="ph-thin ph-receipt text-4xl text-gray-500 mb-2"></i><p class="text-xs text-gray-400 text-center">Sin ingresos en el periodo.</p></div>`;
+            } else {
+                listIncomes.innerHTML = incomes.map(i => `
+                    <div class="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-emerald-500/30 transition-colors group relative cursor-pointer edit-btn" data-id="${i.id}" data-type="tx">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-white">${sanitize(i.description)} <span class="text-[10px] bg-white/10 text-gray-300 px-2 py-0.5 rounded ml-2">${sanitize(i.owner)}</span></p>
+                            <p class="text-xs text-gray-500">${sanitize(i.category)} | <span class="${i.nature === 'Fijo' ? 'text-emerald-400' : 'text-blue-400'}">${i.nature}</span></p>
+                        </div>
+                        <div class="text-right flex flex-col items-end">
+                            <span class="block font-bold text-emerald-400">${formatCurrency(i.amount)}</span>
+                            <button class="delete-btn text-[10px] text-red-400 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wider" data-id="${i.id}" data-table="finance_transactions">Eliminar</button>
+                        </div>
                     </div>
-                    <div class="text-right flex flex-col items-end">
-                        <span class="block font-bold text-emerald-400">${formatCurrency(i.amount)}</span>
-                        <button class="delete-btn text-[10px] text-red-400 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wider" data-id="${i.id}" data-table="finance_transactions">Eliminar</button>
-                    </div>
-                </div>
-            `).join('');
+                `).join('');
+            }
         }
 
         const listExpenses = document.getElementById('list-expenses');
-        if (expenses.length === 0) {
-            listExpenses.innerHTML = `<div class="flex flex-col items-center justify-center h-full opacity-50"><i class="ph-thin ph-shopping-cart text-4xl text-gray-500 mb-2"></i><p class="text-xs text-gray-400 text-center">Sin gastos en el periodo.</p></div>`;
-        } else {
-            listExpenses.innerHTML = expenses.map(e => `
-                <div class="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-red-500/30 transition-colors group relative cursor-pointer edit-btn" data-id="${e.id}" data-type="tx">
-                    <div class="flex-1">
-                        <p class="text-sm font-medium text-white">${sanitize(e.description)} <span class="text-[10px] bg-white/10 text-gray-300 px-2 py-0.5 rounded ml-2">${sanitize(e.owner)}</span></p>
-                        <p class="text-xs text-gray-500">${sanitize(e.category)} | <span class="${e.nature === 'Fijo' ? 'text-red-400' : 'text-orange-400'}">${e.nature}</span></p>
+        if (listExpenses) {
+            if (expenses.length === 0) {
+                listExpenses.innerHTML = `<div class="flex flex-col items-center justify-center h-full opacity-50"><i class="ph-thin ph-shopping-cart text-4xl text-gray-500 mb-2"></i><p class="text-xs text-gray-400 text-center">Sin gastos en el periodo.</p></div>`;
+            } else {
+                listExpenses.innerHTML = expenses.map(e => `
+                    <div class="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-red-500/30 transition-colors group relative cursor-pointer edit-btn" data-id="${e.id}" data-type="tx">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-white">${sanitize(e.description)} <span class="text-[10px] bg-white/10 text-gray-300 px-2 py-0.5 rounded ml-2">${sanitize(e.owner)}</span></p>
+                            <p class="text-xs text-gray-500">${sanitize(e.category)} | <span class="${e.nature === 'Fijo' ? 'text-red-400' : 'text-orange-400'}">${e.nature}</span></p>
+                        </div>
+                        <div class="text-right flex flex-col items-end">
+                            <span class="block font-bold text-white">${formatCurrency(e.amount)}</span>
+                            <button class="delete-btn text-[10px] text-red-400 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wider" data-id="${e.id}" data-table="finance_transactions">Eliminar</button>
+                        </div>
                     </div>
-                    <div class="text-right flex flex-col items-end">
-                        <span class="block font-bold text-white">${formatCurrency(e.amount)}</span>
-                        <button class="delete-btn text-[10px] text-red-400 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wider" data-id="${e.id}" data-table="finance_transactions">Eliminar</button>
-                    </div>
-                </div>
-            `).join('');
+                `).join('');
+            }
         }
 
         const listGoals = document.getElementById('list-goals');
-        if (DB.goals.length === 0) {
-            listGoals.innerHTML = `<div class="flex flex-col items-center justify-center h-full opacity-50"><p class="text-xs text-gray-400 text-center">Sin fondos o proyectos.</p></div>`;
-        } else {
-            listGoals.innerHTML = DB.goals.map(g => {
-                const pct = Math.min((g.current_amount / g.target_amount) * 100, 100);
-                return `
-                <div class="p-4 rounded-xl bg-white/5 border border-white/5 group relative cursor-pointer edit-btn" data-id="${g.id}" data-type="goal">
-                    <div class="flex justify-between items-center mb-2">
-                        <p class="text-sm font-medium text-white">${sanitize(g.title)}</p>
-                        <div class="flex gap-2 items-center">
-                            <span class="text-[10px] px-2 py-1 rounded-md bg-blue-500/20 text-blue-400 uppercase">${g.type}</span>
-                            <button class="delete-btn text-gray-500 hover:text-red-400 transition-colors z-10" data-id="${g.id}" data-table="finance_goals"><i class="ph-fill ph-trash"></i></button>
+        if (listGoals) {
+            if (DB.goals.length === 0) {
+                listGoals.innerHTML = `<div class="flex flex-col items-center justify-center h-full opacity-50"><p class="text-xs text-gray-400 text-center">Sin fondos o proyectos.</p></div>`;
+            } else {
+                listGoals.innerHTML = DB.goals.map(g => {
+                    const pct = Math.min((g.current_amount / g.target_amount) * 100, 100);
+                    return `
+                    <div class="p-4 rounded-xl bg-white/5 border border-white/5 group relative cursor-pointer edit-btn" data-id="${g.id}" data-type="goal">
+                        <div class="flex justify-between items-center mb-2">
+                            <p class="text-sm font-medium text-white">${sanitize(g.title)}</p>
+                            <div class="flex gap-2 items-center">
+                                <span class="text-[10px] px-2 py-1 rounded-md bg-blue-500/20 text-blue-400 uppercase">${g.type}</span>
+                                <button class="delete-btn text-gray-500 hover:text-red-400 transition-colors z-10" data-id="${g.id}" data-table="finance_goals"><i class="ph-fill ph-trash"></i></button>
+                            </div>
+                        </div>
+                        <div class="w-full h-1.5 bg-black/50 rounded-full overflow-hidden mb-2">
+                            <div class="h-full bg-gradient-to-r from-blue-500 to-indigo-500" style="width: ${pct}%"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-400 font-mono">
+                            <span>Actual: ${formatCurrency(g.current_amount)}</span>
+                            <span>Meta: ${formatCurrency(g.target_amount)}</span>
                         </div>
                     </div>
-                    <div class="w-full h-1.5 bg-black/50 rounded-full overflow-hidden mb-2">
-                        <div class="h-full bg-gradient-to-r from-blue-500 to-indigo-500" style="width: ${pct}%"></div>
-                    </div>
-                    <div class="flex justify-between text-xs text-gray-400 font-mono">
-                        <span>Actual: ${formatCurrency(g.current_amount)}</span>
-                        <span>Meta: ${formatCurrency(g.target_amount)}</span>
-                    </div>
-                </div>
-            `}).join('');
+                `}).join('');
+            }
         }
 
         const listSchedule = document.getElementById('list-schedule');
-        if (DB.schedule.length === 0) {
-            listSchedule.innerHTML = `<div class="flex flex-col items-center justify-center h-full opacity-50"><p class="text-xs text-gray-400 text-center">Sin agenda registrada.</p></div>`;
-        } else {
-            listSchedule.innerHTML = DB.schedule.map(s => `
-                <div class="p-3 rounded-xl bg-white/5 border-l-2 ${s.type === 'Constante' ? 'border-orange-500' : 'border-purple-500'} group relative cursor-pointer edit-btn" data-id="${s.id}" data-type="schedule">
-                    <button class="delete-btn absolute top-3 right-3 text-gray-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 z-10" data-id="${s.id}" data-table="finance_schedule"><i class="ph-fill ph-trash"></i></button>
-                    <div class="flex items-start mb-1 pr-6">
-                        <p class="text-sm font-semibold text-white">${sanitize(s.activity)}</p>
+        if (listSchedule) {
+            if (DB.schedule.length === 0) {
+                listSchedule.innerHTML = `<div class="flex flex-col items-center justify-center h-full opacity-50"><p class="text-xs text-gray-400 text-center">Sin agenda registrada.</p></div>`;
+            } else {
+                listSchedule.innerHTML = DB.schedule.map(s => `
+                    <div class="p-3 rounded-xl bg-white/5 border-l-2 ${s.type === 'Constante' ? 'border-orange-500' : 'border-purple-500'} group relative cursor-pointer edit-btn" data-id="${s.id}" data-type="schedule">
+                        <button class="delete-btn absolute top-3 right-3 text-gray-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 z-10" data-id="${s.id}" data-table="finance_schedule"><i class="ph-fill ph-trash"></i></button>
+                        <div class="flex items-start mb-1 pr-6">
+                            <p class="text-sm font-semibold text-white">${sanitize(s.activity)}</p>
+                        </div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xs font-bold text-gray-300 bg-white/10 px-2 py-0.5 rounded">${s.hours_per_week}h / semana</span>
+                            <span class="text-[10px] text-gray-500 uppercase">${s.type}</span>
+                        </div>
+                        <p class="text-[11px] text-gray-400 leading-tight"><strong>Retorno:</strong> ${sanitize(s.expected_return)}</p>
                     </div>
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="text-xs font-bold text-gray-300 bg-white/10 px-2 py-0.5 rounded">${s.hours_per_week}h / semana</span>
-                        <span class="text-[10px] text-gray-500 uppercase">${s.type}</span>
-                    </div>
-                    <p class="text-[11px] text-gray-400 leading-tight"><strong>Retorno:</strong> ${sanitize(s.expected_return)}</p>
-                </div>
-            `).join('');
+                `).join('');
+            }
         }
 
         attachInteractionEvents();
     }
 
-    let chartInstance = null;
     function renderChart(categories) {
         const ctx = document.getElementById('financeMainChart');
         if (!ctx) return;
+        
+        // Gracias a mover "let chartInstance = null;" al inicio, esto ya no fallará
         if (chartInstance) chartInstance.destroy();
 
         const labels = Object.keys(categories).length ? Object.keys(categories) : ['Sin Datos'];
@@ -420,7 +434,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (type === 'tx') {
                     const record = DB.transactions.find(t => t.id === id);
                     document.getElementById('ftx-id').value = record.id;
-                    document.querySelector(`input[name="ftx-type"][value="${record.type}"]`).checked = true;
+                    const radio = document.querySelector(`input[name="ftx-type"][value="${record.type}"]`);
+                    if(radio) radio.checked = true;
                     document.getElementById('ftx-date').value = record.created_at.split('T')[0];
                     document.getElementById('ftx-amount').value = record.amount;
                     document.getElementById('ftx-nature').value = record.nature;
@@ -431,7 +446,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } else if (type === 'goal') {
                     const record = DB.goals.find(g => g.id === id);
                     document.getElementById('fg-id').value = record.id;
-                    document.querySelector(`input[name="fg-type"][value="${record.type}"]`).checked = true;
+                    const radio = document.querySelector(`input[name="fg-type"][value="${record.type}"]`);
+                    if(radio) radio.checked = true;
                     document.getElementById('fg-title').value = record.title;
                     document.getElementById('fg-target').value = record.target_amount;
                     document.getElementById('fg-current').value = record.current_amount;
@@ -439,7 +455,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } else if (type === 'schedule') {
                     const record = DB.schedule.find(s => s.id === id);
                     document.getElementById('fs-id').value = record.id;
-                    document.querySelector(`input[name="fs-type"][value="${record.type}"]`).checked = true;
+                    const radio = document.querySelector(`input[name="fs-type"][value="${record.type}"]`);
+                    if(radio) radio.checked = true;
                     document.getElementById('fs-activity').value = record.activity;
                     document.getElementById('fs-hours').value = record.hours_per_week;
                     document.getElementById('fs-return').value = record.expected_return;
@@ -452,7 +469,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ==========================================
     // 8. MANEJO DE FORMULARIOS (SUBMITS)
     // ==========================================
-    document.getElementById('form-tx').addEventListener('submit', async (e) => {
+    document.getElementById('form-tx')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!currentUser) return UIController.showToast('No autorizado', 'error');
 
@@ -488,7 +505,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    document.getElementById('form-goal').addEventListener('submit', async (e) => {
+    document.getElementById('form-goal')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!currentUser) return UIController.showToast('No autorizado', 'error');
 
@@ -512,7 +529,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    document.getElementById('form-schedule').addEventListener('submit', async (e) => {
+    document.getElementById('form-schedule')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!currentUser) return UIController.showToast('No autorizado', 'error');
 
@@ -535,5 +552,4 @@ document.addEventListener('DOMContentLoaded', async () => {
             UIController.showToast(error.message, 'error');
         }
     });
-
 });
