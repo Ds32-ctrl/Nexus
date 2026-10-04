@@ -1,26 +1,23 @@
 // src/js/modules/finance_advanced.js
-const supabaseUrl = 'https://sirytqfdlbgkcuvkquiq.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcnl0cWZkbGJna2N1dmtxdWlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NjQwOTMsImV4cCI6MjEwNjU0MDA5M30.rv2TLpBL8_qMq_qlENS031H0neDbDJ_iQr48ohcUp-g';
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+import { supabase } from './supabaseClient.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // ==========================================
-    // 1. ESTADO GLOBAL Y AUTENTICACIÓN
+    // 1. ESTADO GLOBAL Y REFERENCIAS
     // ==========================================
     let currentUser = null;
+    let chartInstance = null; // <-- CORRECCIÓN: Movido a la cima
     let DB = {
         transactions: [],
         goals: [],
         schedule: []
     };
 
-
-    // Utilidades
     const formatCurrency = (num) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(num);
     const sanitize = (str) => str ? str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)) : '';
 
     // ==========================================
-    // 2. CONTROLADOR DE INTERFAZ (UI) - SÍNCRONO
+    // 2. CONTROLADORES UI Y MODALES
     // ==========================================
     const UIController = {
         showToast(message, type = 'success') {
@@ -53,14 +50,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // ==========================================
-    // 3. EVENTOS DEL DOM (BINDINGS INICIALES)
-    // ==========================================
     const modal = document.getElementById('finance-modal');
     const modalContent = document.getElementById('finance-modal-content');
     const actionText = document.getElementById('modal-action-text');
 
-    // Corrección del mapeo de inputs ocultos usando un Diccionario
     const formIdMap = {
         'form-tx': 'ftx-id',
         'form-goal': 'fg-id',
@@ -104,87 +97,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, 300);
     }
 
-    // Inicializamos eventos ANTES de bloquearnos con promesas de red
-    document.getElementById('btn-open-finance-modal')?.addEventListener('click', () => openModal('form-tx'));
-    document.getElementById('btn-add-goal')?.addEventListener('click', () => openModal('form-goal'));
-    document.getElementById('btn-add-schedule')?.addEventListener('click', () => openModal('form-schedule'));
-    document.getElementById('btn-close-finance-modal')?.addEventListener('click', closeModal);
-    document.getElementById('chart-period-filter')?.addEventListener('change', calculateEngine);
-
-    document.querySelectorAll('.tab-btn').forEach(tab => {
-        tab.addEventListener('click', (e) => {
-            const target = e.currentTarget.dataset.target;
-            const hiddenInputId = formIdMap[target];
-            const isEdit = !!document.getElementById(hiddenInputId).value;
-            openModal(target, isEdit);
-        });
-    });
-
     // ==========================================
-    // 4. AUTENTICACIÓN Y CARGA DE DATOS ASÍNCRONA
-    // ==========================================
-    try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError || !session) {
-            UIController.showToast('Autenticación fallida o sin sesión. El sistema está inactivo.', 'warning');
-            // Si necesitas forzar el redirect a login, descomenta la siguiente línea:
-            // window.location.href = '/login.html'; 
-            
-            // Retornamos de la lógica asíncrona para no ejecutar fetchEcosystemData(), 
-            // pero los botones ya están enlazados.
-            return;
-        }
-        currentUser = session.user;
-        await fetchEcosystemData();
-    } catch(err) {
-        UIController.showToast('Error inicial de red.', 'error');
-        console.error(err);
-    }
-
-    // ==========================================
-    // 5. COMUNICACIÓN CON SUPABASE (CRUD)
-    // ==========================================
-    async function fetchEcosystemData() {
-        try {
-            const [txRes, goalsRes, schedRes] = await Promise.all([
-                supabase.from('finance_transactions').select('*').order('created_at', { ascending: false }),
-                supabase.from('finance_goals').select('*').order('created_at', { ascending: true }),
-                supabase.from('finance_schedule').select('*').order('created_at', { ascending: true })
-            ]);
-
-            if (txRes.error) throw txRes.error;
-            if (goalsRes.error) throw goalsRes.error;
-            if (schedRes.error) throw schedRes.error;
-
-            DB.transactions = txRes.data;
-            DB.goals = goalsRes.data;
-            DB.schedule = schedRes.data;
-
-            calculateEngine();
-        } catch (error) {
-            UIController.showToast('Error sincronizando con el servidor: ' + error.message, 'error');
-        }
-    }
-
-    async function deleteRecord(table, id) {
-        if (!currentUser) return UIController.showToast('Sesión no detectada', 'error');
-        try {
-            const { error } = await supabase.from(table).delete().eq('id', id);
-            if (error) throw error;
-            
-            if (table === 'finance_transactions') DB.transactions = DB.transactions.filter(t => t.id !== id);
-            if (table === 'finance_goals') DB.goals = DB.goals.filter(g => g.id !== id);
-            if (table === 'finance_schedule') DB.schedule = DB.schedule.filter(s => s.id !== id);
-            
-            calculateEngine();
-            UIController.showToast('Registro eliminado con éxito.', 'info');
-        } catch (error) {
-            UIController.showToast('Error eliminando: ' + error.message, 'error');
-        }
-    }
-
-    // ==========================================
-    // 6. MOTOR ALGORÍTMICO Y MATEMÁTICO
+    // 3. FUNCIONES CORE Y RENDERIZADO
     // ==========================================
     function calculateEngine() {
         const periodFilter = document.getElementById('chart-period-filter')?.value || 'all';
@@ -242,9 +156,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderChart(metrics.categoryTotals);
     }
 
-    // ==========================================
-    // 7. RENDERIZADO DE INTERFAZ (DOM)
-    // ==========================================
     function renderKPIs(fcf, metrics, savingsRate, needsRatio, wantsRatio, fiNumber, runwayMonths) {
         const kpiFcf = document.getElementById('kpi-fcf');
         kpiFcf.textContent = formatCurrency(fcf);
@@ -365,10 +276,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             `).join('');
         }
 
-        attachInteractionEvents();
+        // Re-adjuntar eventos estáticos a los nuevos elementos del DOM
+        attachDynamicEvents();
     }
 
-    let chartInstance = null;
     function renderChart(categories) {
         const ctx = document.getElementById('financeMainChart');
         if (!ctx) return;
@@ -400,12 +311,45 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    function attachInteractionEvents() {
+    // ==========================================
+    // 4. EVENTOS DEL DOM (SÍNCRONOS)
+    // ==========================================
+    document.getElementById('btn-open-finance-modal')?.addEventListener('click', () => openModal('form-tx'));
+    document.getElementById('btn-add-goal')?.addEventListener('click', () => openModal('form-goal'));
+    document.getElementById('btn-add-schedule')?.addEventListener('click', () => openModal('form-schedule'));
+    document.getElementById('btn-close-finance-modal')?.addEventListener('click', closeModal);
+    document.getElementById('chart-period-filter')?.addEventListener('change', calculateEngine);
+
+    document.querySelectorAll('.tab-btn').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            const target = e.currentTarget.dataset.target;
+            const hiddenInputId = formIdMap[target];
+            const isEdit = !!document.getElementById(hiddenInputId).value;
+            openModal(target, isEdit);
+        });
+    });
+
+    function attachDynamicEvents() {
         document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('click', async (e) => {
                 e.stopPropagation(); 
-                if(confirm('¿Estás seguro de eliminar este registro?')) {
-                    deleteRecord(e.currentTarget.dataset.table, e.currentTarget.dataset.id);
+                if(!confirm('¿Estás seguro de eliminar este registro?')) return;
+                
+                const table = e.currentTarget.dataset.table;
+                const id = e.currentTarget.dataset.id;
+                
+                try {
+                    const { error } = await supabase.from(table).delete().eq('id', id);
+                    if (error) throw error;
+                    
+                    if (table === 'finance_transactions') DB.transactions = DB.transactions.filter(t => t.id !== id);
+                    if (table === 'finance_goals') DB.goals = DB.goals.filter(g => g.id !== id);
+                    if (table === 'finance_schedule') DB.schedule = DB.schedule.filter(s => s.id !== id);
+                    
+                    calculateEngine();
+                    UIController.showToast('Registro eliminado con éxito.', 'info');
+                } catch (error) {
+                    UIController.showToast('Error eliminando: ' + error.message, 'error');
                 }
             });
         });
@@ -449,9 +393,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // ==========================================
-    // 8. MANEJO DE FORMULARIOS (SUBMITS)
-    // ==========================================
+    // Formularios
     document.getElementById('form-tx').addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!currentUser) return UIController.showToast('No autorizado', 'error');
@@ -482,7 +424,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 UIController.showToast('Transacción registrada.');
             }
             closeModal();
-            fetchEcosystemData();
+            await fetchEcosystemData();
         } catch (error) {
             UIController.showToast(error.message, 'error');
         }
@@ -505,7 +447,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (id) await supabase.from('finance_goals').update(payload).eq('id', id);
             else await supabase.from('finance_goals').insert([payload]);
             closeModal();
-            fetchEcosystemData();
+            await fetchEcosystemData();
             UIController.showToast('Meta guardada.');
         } catch (error) {
             UIController.showToast(error.message, 'error');
@@ -529,11 +471,47 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (id) await supabase.from('finance_schedule').update(payload).eq('id', id);
             else await supabase.from('finance_schedule').insert([payload]);
             closeModal();
-            fetchEcosystemData();
+            await fetchEcosystemData();
             UIController.showToast('Horario actualizado.');
         } catch (error) {
             UIController.showToast(error.message, 'error');
         }
     });
 
+    // ==========================================
+    // 5. INICIALIZACIÓN ASÍNCRONA (AL FINAL)
+    // ==========================================
+    async function fetchEcosystemData() {
+        try {
+            const [txRes, goalsRes, schedRes] = await Promise.all([
+                supabase.from('finance_transactions').select('*').order('created_at', { ascending: false }),
+                supabase.from('finance_goals').select('*').order('created_at', { ascending: true }),
+                supabase.from('finance_schedule').select('*').order('created_at', { ascending: true })
+            ]);
+
+            if (txRes.error) throw txRes.error;
+            if (goalsRes.error) throw goalsRes.error;
+            if (schedRes.error) throw schedRes.error;
+
+            DB.transactions = txRes.data;
+            DB.goals = goalsRes.data;
+            DB.schedule = schedRes.data;
+
+            calculateEngine();
+        } catch (error) {
+            UIController.showToast('Error obteniendo datos: ' + error.message, 'error');
+        }
+    }
+
+    try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !session) {
+            UIController.showToast('Sin sesión activa. Los datos no se guardarán.', 'warning');
+            return;
+        }
+        currentUser = session.user;
+        await fetchEcosystemData();
+    } catch(err) {
+        console.error('Fallo en la carga inicial:', err);
+    }
 });
