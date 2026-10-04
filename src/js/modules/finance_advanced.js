@@ -1,9 +1,11 @@
 // src/js/modules/finance_advanced.js
-import { supabase } from './supabaseClient.js';
+const supabaseUrl = 'https://sirytqfdlbgkcuvkquiq.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcnl0cWZkbGJna2N1dmtxdWlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NjQwOTMsImV4cCI6MjEwNjU0MDA5M30.rv2TLpBL8_qMq_qlENS031H0neDbDJ_iQr48ohcUp-g';
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 document.addEventListener('DOMContentLoaded', async () => {
     // ==========================================
-    // 1. ESTADO GLOBAL
+    // 1. ESTADO GLOBAL Y AUTENTICACIÓN
     // ==========================================
     let currentUser = null;
     let DB = {
@@ -11,6 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         goals: [],
         schedule: []
     };
+
 
     // Utilidades
     const formatCurrency = (num) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(num);
