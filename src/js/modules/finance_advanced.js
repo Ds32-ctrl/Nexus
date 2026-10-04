@@ -1,9 +1,9 @@
 // src/js/modules/finance_advanced.js
-import { supabase } from './supabaseClient.js'; // Ajusta la ruta a tu cliente configurado
+import { supabase } from './supabaseClient.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // ==========================================
-    // 1. ESTADO GLOBAL Y AUTENTICACIÓN
+    // 1. ESTADO GLOBAL
     // ==========================================
     let currentUser = null;
     let DB = {
@@ -12,20 +12,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         schedule: []
     };
 
-    // Validar sesión
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
-        window.location.href = '/login.html'; // Ajustar según tu ruteo
-        return;
-    }
-    currentUser = session.user;
-
     // Utilidades
     const formatCurrency = (num) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(num);
     const sanitize = (str) => str ? str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)) : '';
 
     // ==========================================
-    // 2. CONTROLADOR DE INTERFAZ (UI & Toasts)
+    // 2. CONTROLADOR DE INTERFAZ (UI) - SÍNCRONO
     // ==========================================
     const UIController = {
         showToast(message, type = 'success') {
@@ -46,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             };
 
             const toast = document.createElement('div');
-            toast.className = `flex items-center gap-3 px-4 py-3 rounded-2xl glass border ${borders[type]} transform translate-y-10 opacity-0 transition-all duration-300 shadow-lg pointer-events-auto bg-black/80`;
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-2xl glass border ${borders[type]} transform translate-y-10 opacity-0 transition-all duration-300 shadow-lg pointer-events-auto bg-black/80 z-[300]`;
             toast.innerHTML = `${icons[type]} <p class="text-sm font-medium text-white">${sanitize(message)}</p>`;
 
             container.appendChild(toast);
@@ -55,14 +47,99 @@ document.addEventListener('DOMContentLoaded', async () => {
                 toast.classList.add('translate-y-10', 'opacity-0');
                 setTimeout(() => toast.remove(), 300);
             }, 4000);
-        },
-        toggleLoading(show) {
-            // Opcional: Implementar un overlay de carga general si la red es lenta
         }
     };
 
     // ==========================================
-    // 3. COMUNICACIÓN CON SUPABASE (CRUD)
+    // 3. EVENTOS DEL DOM (BINDINGS INICIALES)
+    // ==========================================
+    const modal = document.getElementById('finance-modal');
+    const modalContent = document.getElementById('finance-modal-content');
+    const actionText = document.getElementById('modal-action-text');
+
+    // Corrección del mapeo de inputs ocultos usando un Diccionario
+    const formIdMap = {
+        'form-tx': 'ftx-id',
+        'form-goal': 'fg-id',
+        'form-schedule': 'fs-id'
+    };
+
+    function openModal(targetTab = 'form-tx', isEdit = false) {
+        actionText.textContent = isEdit ? 'Editar Registro' : 'Entrada de Datos';
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            if(btn.dataset.target === targetTab) {
+                btn.classList.add('bg-white/10', 'text-white', 'shadow-sm');
+                btn.classList.remove('text-gray-400');
+            } else {
+                btn.classList.remove('bg-white/10', 'text-white', 'shadow-sm');
+                btn.classList.add('text-gray-400');
+            }
+        });
+
+        document.querySelectorAll('.modal-form').forEach(f => f.classList.add('hidden'));
+        document.getElementById(targetTab).classList.remove('hidden');
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            modalContent.classList.remove('scale-95');
+        }, 10);
+    }
+
+    function closeModal() {
+        modal.classList.add('opacity-0');
+        modalContent.classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.getElementById('form-tx').reset();
+            document.getElementById('form-goal').reset();
+            document.getElementById('form-schedule').reset();
+            document.getElementById('ftx-id').value = '';
+            document.getElementById('fg-id').value = '';
+            document.getElementById('fs-id').value = '';
+        }, 300);
+    }
+
+    // Inicializamos eventos ANTES de bloquearnos con promesas de red
+    document.getElementById('btn-open-finance-modal')?.addEventListener('click', () => openModal('form-tx'));
+    document.getElementById('btn-add-goal')?.addEventListener('click', () => openModal('form-goal'));
+    document.getElementById('btn-add-schedule')?.addEventListener('click', () => openModal('form-schedule'));
+    document.getElementById('btn-close-finance-modal')?.addEventListener('click', closeModal);
+    document.getElementById('chart-period-filter')?.addEventListener('change', calculateEngine);
+
+    document.querySelectorAll('.tab-btn').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            const target = e.currentTarget.dataset.target;
+            const hiddenInputId = formIdMap[target];
+            const isEdit = !!document.getElementById(hiddenInputId).value;
+            openModal(target, isEdit);
+        });
+    });
+
+    // ==========================================
+    // 4. AUTENTICACIÓN Y CARGA DE DATOS ASÍNCRONA
+    // ==========================================
+    try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !session) {
+            UIController.showToast('Autenticación fallida o sin sesión. El sistema está inactivo.', 'warning');
+            // Si necesitas forzar el redirect a login, descomenta la siguiente línea:
+            // window.location.href = '/login.html'; 
+            
+            // Retornamos de la lógica asíncrona para no ejecutar fetchEcosystemData(), 
+            // pero los botones ya están enlazados.
+            return;
+        }
+        currentUser = session.user;
+        await fetchEcosystemData();
+    } catch(err) {
+        UIController.showToast('Error inicial de red.', 'error');
+        console.error(err);
+    }
+
+    // ==========================================
+    // 5. COMUNICACIÓN CON SUPABASE (CRUD)
     // ==========================================
     async function fetchEcosystemData() {
         try {
@@ -87,11 +164,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function deleteRecord(table, id) {
+        if (!currentUser) return UIController.showToast('Sesión no detectada', 'error');
         try {
             const { error } = await supabase.from(table).delete().eq('id', id);
             if (error) throw error;
             
-            // Actualizar estado local y UI
             if (table === 'finance_transactions') DB.transactions = DB.transactions.filter(t => t.id !== id);
             if (table === 'finance_goals') DB.goals = DB.goals.filter(g => g.id !== id);
             if (table === 'finance_schedule') DB.schedule = DB.schedule.filter(s => s.id !== id);
@@ -104,7 +181,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ==========================================
-    // 4. MOTOR ALGORÍTMICO Y MATEMÁTICO CORREGIDO
+    // 6. MOTOR ALGORÍTMICO Y MATEMÁTICO
     // ==========================================
     function calculateEngine() {
         const periodFilter = document.getElementById('chart-period-filter')?.value || 'all';
@@ -120,13 +197,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             categoryTotals: {}
         };
 
-        // 1. Clasificación estricta de Transacciones
         DB.transactions.forEach(tx => {
             const txDate = new Date(tx.created_at);
             const isCurrentMonth = txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
             
-            // Filtrar para métricas generales si solo queremos "Este Mes"
-            // (Nota: El patrimonio y metas son históricos, los flujos pueden ser mensuales)
             if (periodFilter === 'current' && !isCurrentMonth) return;
 
             const amount = parseFloat(tx.amount);
@@ -146,23 +220,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        // 2. Corrección del Flujo y Ahorro Real
         const freeCashFlow = metrics.incomeTotal - metrics.expenseTotal;
-        
-        // Si el FCF es negativo, se comió el ahorro asignado. El ahorro real es el neto.
         const realSavings = metrics.savingsAllocated + freeCashFlow;
         const savingsRate = metrics.incomeTotal > 0 ? (realSavings / metrics.incomeTotal) * 100 : 0;
 
-        // 3. Regla 50/30/20 Pura
         const pureFixedExpenses = metrics.expenseFixed - metrics.savingsAllocated;
         const needsRatio = metrics.incomeTotal > 0 ? (pureFixedExpenses / metrics.incomeTotal) * 100 : 0;
         const wantsRatio = metrics.incomeTotal > 0 ? (metrics.expenseVar / metrics.incomeTotal) * 100 : 0;
 
-        // 4. Libertad Financiera y Liquidez
         const annualFixedExpense = pureFixedExpenses > 0 ? pureFixedExpenses * 12 : 0;
         const fiNumber = annualFixedExpense * 25;
 
-        // Liquidez = Dinero estancado en metas "Fondo de emergencia" o ahorros líquidos. No incluye flujos futuros.
         let liquidCapital = DB.goals.reduce((acc, goal) => acc + parseFloat(goal.current_amount), 0);
         const runwayMonths = pureFixedExpenses > 0 ? (liquidCapital / pureFixedExpenses) : 0;
 
@@ -172,7 +240,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ==========================================
-    // 5. RENDERIZADO DE INTERFAZ (DOM)
+    // 7. RENDERIZADO DE INTERFAZ (DOM)
     // ==========================================
     function renderKPIs(fcf, metrics, savingsRate, needsRatio, wantsRatio, fiNumber, runwayMonths) {
         const kpiFcf = document.getElementById('kpi-fcf');
@@ -213,7 +281,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('lbl-total-incomes').textContent = `${incomes.length} Registros`;
         document.getElementById('lbl-total-expenses').textContent = `${expenses.length} Registros`;
 
-        // Render Ingresos
         const listIncomes = document.getElementById('list-incomes');
         if (incomes.length === 0) {
             listIncomes.innerHTML = `<div class="flex flex-col items-center justify-center h-full opacity-50"><i class="ph-thin ph-receipt text-4xl text-gray-500 mb-2"></i><p class="text-xs text-gray-400 text-center">Sin ingresos en el periodo.</p></div>`;
@@ -232,7 +299,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             `).join('');
         }
 
-        // Render Gastos
         const listExpenses = document.getElementById('list-expenses');
         if (expenses.length === 0) {
             listExpenses.innerHTML = `<div class="flex flex-col items-center justify-center h-full opacity-50"><i class="ph-thin ph-shopping-cart text-4xl text-gray-500 mb-2"></i><p class="text-xs text-gray-400 text-center">Sin gastos en el periodo.</p></div>`;
@@ -251,7 +317,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             `).join('');
         }
 
-        // Render Metas
         const listGoals = document.getElementById('list-goals');
         if (DB.goals.length === 0) {
             listGoals.innerHTML = `<div class="flex flex-col items-center justify-center h-full opacity-50"><p class="text-xs text-gray-400 text-center">Sin fondos o proyectos.</p></div>`;
@@ -278,7 +343,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             `}).join('');
         }
 
-        // Render Horario
         const listSchedule = document.getElementById('list-schedule');
         if (DB.schedule.length === 0) {
             listSchedule.innerHTML = `<div class="flex flex-col items-center justify-center h-full opacity-50"><p class="text-xs text-gray-400 text-center">Sin agenda registrada.</p></div>`;
@@ -333,64 +397,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // ==========================================
-    // 6. GESTIÓN DEL MODAL, FORMS Y EVENTOS
-    // ==========================================
-    const modal = document.getElementById('finance-modal');
-    const modalContent = document.getElementById('finance-modal-content');
-    const actionText = document.getElementById('modal-action-text');
-
-    function openModal(targetTab = 'form-tx', isEdit = false) {
-        actionText.textContent = isEdit ? 'Editar Registro' : 'Entrada de Datos';
-        
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            if(btn.dataset.target === targetTab) {
-                btn.classList.add('bg-white/10', 'text-white', 'shadow-sm');
-                btn.classList.remove('text-gray-400');
-            } else {
-                btn.classList.remove('bg-white/10', 'text-white', 'shadow-sm');
-                btn.classList.add('text-gray-400');
-            }
-        });
-
-        document.querySelectorAll('.modal-form').forEach(f => f.classList.add('hidden'));
-        document.getElementById(targetTab).classList.remove('hidden');
-
-        modal.classList.remove('hidden');
-        setTimeout(() => {
-            modal.classList.remove('opacity-0');
-            modalContent.classList.remove('scale-95');
-        }, 10);
-    }
-
-    function closeModal() {
-        modal.classList.add('opacity-0');
-        modalContent.classList.add('scale-95');
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            document.getElementById('form-tx').reset();
-            document.getElementById('form-goal').reset();
-            document.getElementById('form-schedule').reset();
-            document.getElementById('ftx-id').value = '';
-            document.getElementById('fg-id').value = '';
-            document.getElementById('fs-id').value = '';
-        }, 300);
-    }
-
-    document.getElementById('btn-open-finance-modal').addEventListener('click', () => openModal('form-tx'));
-    document.getElementById('btn-add-goal').addEventListener('click', () => openModal('form-goal'));
-    document.getElementById('btn-add-schedule').addEventListener('click', () => openModal('form-schedule'));
-    document.getElementById('btn-close-finance-modal').addEventListener('click', closeModal);
-    document.getElementById('chart-period-filter').addEventListener('change', calculateEngine);
-
-    document.querySelectorAll('.tab-btn').forEach(tab => {
-        tab.addEventListener('click', (e) => openModal(e.currentTarget.dataset.target, !!document.getElementById(e.currentTarget.dataset.target.replace('form-', 'f') + '-id').value));
-    });
-
     function attachInteractionEvents() {
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Evitar que abra el modal de edición
+                e.stopPropagation(); 
                 if(confirm('¿Estás seguro de eliminar este registro?')) {
                     deleteRecord(e.currentTarget.dataset.table, e.currentTarget.dataset.id);
                 }
@@ -436,12 +446,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Submit Transacción (Upsert)
+    // ==========================================
+    // 8. MANEJO DE FORMULARIOS (SUBMITS)
+    // ==========================================
     document.getElementById('form-tx').addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (!currentUser) return UIController.showToast('No autorizado', 'error');
+
         const id = document.getElementById('ftx-id').value;
-        
-        // Formatear fecha para evitar timezone issues en DB, usar hora UTC o local configurada
         let dateValue = document.getElementById('ftx-date').value;
         const createdAt = dateValue ? new Date(dateValue + 'T12:00:00Z').toISOString() : new Date().toISOString();
 
@@ -473,9 +485,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Submit Meta (Upsert)
     document.getElementById('form-goal').addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (!currentUser) return UIController.showToast('No autorizado', 'error');
+
         const id = document.getElementById('fg-id').value;
         const payload = {
             user_id: currentUser.id,
@@ -496,9 +509,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Submit Horario (Upsert)
     document.getElementById('form-schedule').addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (!currentUser) return UIController.showToast('No autorizado', 'error');
+
         const id = document.getElementById('fs-id').value;
         const payload = {
             user_id: currentUser.id,
@@ -519,6 +533,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Inicializar app
-    fetchEcosystemData();
 });
