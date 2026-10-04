@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus OS | Ecosistema Financiero</title>
     
-    <!-- Tailwind CSS -->
+    <!-- ⚠️ DEUDA TÉCNICA: Reemplazar CDN por build local (ej: href="../css/output.css") en Producción -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Chart.js (Para gráficas futuras) -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Google Fonts -->
@@ -27,12 +27,9 @@
 
     <div class="h-screen flex relative z-10">
         
-        <!-- ========================================== -->
         <!-- SIDEBAR -->
-        <!-- ========================================== -->
         <aside class="w-20 lg:w-64 glass border-r border-white/5 flex flex-col justify-between h-screen sticky top-0 z-40 transition-all duration-300">
             <div>
-                <!-- Logo -->
                 <div class="h-20 flex items-center justify-center lg:justify-start lg:px-6 border-b border-white/5">
                     <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0">
                         <i class="ph-bold ph-infinity text-white text-xl"></i>
@@ -40,7 +37,6 @@
                     <span class="hidden lg:block font-bold text-xl tracking-tight text-white ml-3">Nexus<span class="text-indigo-400">OS</span></span>
                 </div>
                 
-                <!-- Navegación Principal -->
                 <nav class="mt-6 px-2 lg:px-4 space-y-1">
                     <p class="hidden lg:block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-3">Módulos Activos</p>
                     
@@ -58,7 +54,7 @@
                     </a>
                     
                     <!-- Módulo Activo -->
-                    <a href="finance.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group transition-all shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                    <a href="finance.html" aria-current="page" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group transition-all shadow-[0_0_15px_rgba(16,185,129,0.1)]">
                         <i class="ph-fill ph-wallet text-xl group-hover:scale-110 transition-transform"></i>
                         <span class="hidden lg:block font-bold">Control Financiero</span>
                     </a>
@@ -77,9 +73,7 @@
             </div>
         </aside>
 
-        <!-- ========================================== -->
-        <!-- MAIN CONTENT (ECOSISTEMA FINANCIERO) -->
-        <!-- ========================================== -->
+        <!-- MAIN CONTENT -->
         <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-10 relative flex flex-col h-full custom-scrollbar">
             
             <!-- HEADER -->
@@ -94,7 +88,7 @@
                     <button id="btn-export-report" class="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-sm font-medium transition-colors flex items-center gap-2">
                         <i class="ph ph-file-csv text-lg"></i> Exportar
                     </button>
-                    <!-- BOTÓN PRINCIPAL PARA EL MODAL -->
+                    <!-- BOTÓN ABRIR MODAL (NUEVO REGISTRO) -->
                     <button id="btn-open-finance-modal" class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] flex items-center gap-2">
                         <i class="ph-bold ph-plus text-lg"></i> Registrar Dato
                     </button>
@@ -106,7 +100,6 @@
                 
                 <!-- SECCIÓN SUPERIOR: KPIs ALGORÍTMICOS -->
                 <div class="lg:col-span-12 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                    
                     <!-- Flujo Libre -->
                     <div class="glass-card rounded-3xl p-6 relative overflow-hidden group">
                         <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mt-10 -mr-10 transition-all group-hover:bg-emerald-500/20"></div>
@@ -161,16 +154,15 @@
                     </div>
                 </div>
 
-                <!-- COLUMNA IZQUIERDA: GRÁFICAS Y LIBRO MAYOR (INGRESOS/GASTOS) -->
+                <!-- COLUMNA IZQUIERDA: GRÁFICAS Y LIBRO MAYOR -->
                 <div class="lg:col-span-8 flex flex-col gap-6">
                     
-                    <!-- Gráfica Analítica -->
                     <div class="glass-card rounded-3xl p-6 h-80 flex flex-col">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-sm font-bold text-white uppercase tracking-wider">Distribución de Capital</h3>
-                            <select class="bg-black/30 border border-white/10 rounded-lg text-xs text-gray-300 p-1 outline-none">
-                                <option>Este Mes</option>
-                                <option>Histórico</option>
+                            <select id="chart-period-filter" class="bg-black/30 border border-white/10 rounded-lg text-xs text-gray-300 p-1 outline-none">
+                                <option value="current">Este Mes</option>
+                                <option value="all">Histórico</option>
                             </select>
                         </div>
                         <div class="flex-1 relative w-full h-full">
@@ -178,9 +170,7 @@
                         </div>
                     </div>
 
-                    <!-- Libro Mayor: Listados Editables -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        
                         <!-- Panel de Ingresos -->
                         <div class="glass-card rounded-3xl p-6 flex flex-col h-[400px]">
                             <div class="flex justify-between items-center mb-4 border-b border-white/5 pb-3">
@@ -190,10 +180,9 @@
                                 <span class="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-md" id="lbl-total-incomes">0 Registros</span>
                             </div>
                             <div id="list-incomes" class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                                <!-- Elemento Vacío por Defecto -->
                                 <div class="flex flex-col items-center justify-center h-full opacity-50">
-                                    <i class="ph-thin ph-receipt text-4xl text-gray-500 mb-2"></i>
-                                    <p class="text-xs text-gray-400 text-center">Sin ingresos registrados.<br>Usa "Registrar Dato".</p>
+                                    <i class="ph-thin ph-spinner-gap animate-spin text-4xl text-gray-500 mb-2"></i>
+                                    <p class="text-xs text-gray-400 text-center">Cargando...</p>
                                 </div>
                             </div>
                         </div>
@@ -207,45 +196,42 @@
                                 <span class="text-xs bg-red-500/10 text-red-400 px-2 py-1 rounded-md" id="lbl-total-expenses">0 Registros</span>
                             </div>
                             <div id="list-expenses" class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                                <!-- Elemento Vacío por Defecto -->
                                 <div class="flex flex-col items-center justify-center h-full opacity-50">
-                                    <i class="ph-thin ph-shopping-cart text-4xl text-gray-500 mb-2"></i>
-                                    <p class="text-xs text-gray-400 text-center">Sin gastos registrados.</p>
+                                    <i class="ph-thin ph-spinner-gap animate-spin text-4xl text-gray-500 mb-2"></i>
+                                    <p class="text-xs text-gray-400 text-center">Cargando...</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- COLUMNA DERECHA: METAS, PROYECTOS Y HORARIO -->
+                <!-- COLUMNA DERECHA: METAS Y HORARIO -->
                 <div class="lg:col-span-4 flex flex-col gap-6">
                     
-                    <!-- Objetivos y Metas de Capital -->
                     <div class="glass-card rounded-3xl p-6 flex-1 max-h-[400px] flex flex-col">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider">
                                 <i class="ph-fill ph-target text-blue-400 text-lg"></i> Proyectos / Metas
                             </h3>
-                            <button class="text-gray-400 hover:text-white transition-colors"><i class="ph ph-plus"></i></button>
+                            <button id="btn-add-goal" class="text-gray-400 hover:text-white transition-colors" aria-label="Añadir Meta"><i class="ph ph-plus"></i></button>
                         </div>
                         <div id="list-goals" class="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
                              <div class="flex flex-col items-center justify-center h-full opacity-50">
-                                <p class="text-xs text-gray-400 text-center">Define tus fondos de emergencia o proyectos.</p>
+                                <i class="ph-thin ph-spinner-gap animate-spin text-2xl text-gray-500 mb-2"></i>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Programación / Valor del Tiempo -->
                     <div class="glass-card rounded-3xl p-6 flex-1 max-h-[400px] flex flex-col">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider">
                                 <i class="ph-fill ph-clock text-orange-400 text-lg"></i> Agenda de Valor
                             </h3>
-                            <button class="text-gray-400 hover:text-white transition-colors"><i class="ph ph-plus"></i></button>
+                            <button id="btn-add-schedule" class="text-gray-400 hover:text-white transition-colors" aria-label="Añadir Horario"><i class="ph ph-plus"></i></button>
                         </div>
                         <div id="list-schedule" class="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
                              <div class="flex flex-col items-center justify-center h-full opacity-50">
-                                <p class="text-xs text-gray-400 text-center">Registra actividades constantes o de interés.</p>
+                                <i class="ph-thin ph-spinner-gap animate-spin text-2xl text-gray-500 mb-2"></i>
                             </div>
                         </div>
                     </div>
@@ -256,29 +242,31 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- SUPER MODAL MULTIPROPÓSITO: REGISTRAR DATO -->
+    <!-- SUPER MODAL MULTIPROPÓSITO: C-R-U-D -->
     <!-- ========================================== -->
-    <div id="finance-modal" class="hidden fixed inset-0 bg-[#050505]/90 z-[100] flex items-center justify-center backdrop-blur-md opacity-0 transition-opacity duration-300">
+    <div id="finance-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" class="hidden fixed inset-0 bg-[#050505]/90 z-[100] flex items-center justify-center backdrop-blur-md opacity-0 transition-opacity duration-300">
         <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-2xl border border-white/10 transform scale-95 transition-transform duration-300 relative" id="finance-modal-content">
             
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-white flex items-center gap-2">
-                    <i class="ph-fill ph-database text-emerald-400"></i> Entrada de Datos
+                <h2 id="modal-title" class="text-2xl font-bold text-white flex items-center gap-2">
+                    <i class="ph-fill ph-database text-emerald-400"></i> <span id="modal-action-text">Entrada de Datos</span>
                 </h2>
-                <button id="btn-close-finance-modal" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
+                <button id="btn-close-finance-modal" aria-label="Cerrar modal" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
                     <i class="ph ph-x"></i>
                 </button>
             </div>
 
-            <!-- Navegación por Pestañas (Tabs) -->
-            <div class="flex gap-2 p-1 bg-black/40 border border-white/5 rounded-xl mb-6">
+            <!-- Navegación por Pestañas -->
+            <div class="flex gap-2 p-1 bg-black/40 border border-white/5 rounded-xl mb-6" id="modal-tabs">
                 <button class="tab-btn flex-1 py-2 rounded-lg text-sm font-bold bg-white/10 text-white shadow-sm transition-all" data-target="form-tx">Transacción</button>
                 <button class="tab-btn flex-1 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white transition-all" data-target="form-goal">Meta/Proyecto</button>
                 <button class="tab-btn flex-1 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white transition-all" data-target="form-schedule">Horario</button>
             </div>
 
-            <!-- CONTENEDOR 1: TRANSACCIONES (Ingresos y Gastos) -->
+            <!-- CONTENEDOR 1: TRANSACCIONES -->
             <form id="form-tx" class="modal-form space-y-5">
+                <input type="hidden" id="ftx-id" value=""> <!-- Clave para el UPDATE -->
+                
                 <div class="grid grid-cols-2 gap-4">
                     <label class="cursor-pointer group">
                         <input type="radio" name="ftx-type" value="income" class="peer hidden" checked>
@@ -296,52 +284,58 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Naturaleza</label>
-                        <select id="ftx-nature" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500/50 appearance-none">
+                        <label for="ftx-date" class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Fecha de Registro</label>
+                        <input type="date" id="ftx-date" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500/50 [color-scheme:dark]">
+                    </div>
+                    <div>
+                        <label for="ftx-amount" class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Monto (COP)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-3 text-gray-500">$</span>
+                            <input type="number" step="0.01" id="ftx-amount" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 pl-8 text-white font-mono focus:outline-none focus:border-emerald-500/50" placeholder="0.00">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="ftx-nature" class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Naturaleza</label>
+                        <select id="ftx-nature" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500/50 appearance-none">
                             <option value="Fijo">Fijo / Estable</option>
                             <option value="Variable">Variable</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Monto (COP)</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-3 text-gray-500">$</span>
-                            <input type="number" id="ftx-amount" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 pl-8 text-white font-mono focus:outline-none focus:border-emerald-500/50" placeholder="0.00">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Categoría / Cuenta</label>
-                        <select id="ftx-category" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500/50 appearance-none">
+                        <label for="ftx-category" class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Categoría</label>
+                        <select id="ftx-category" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500/50 appearance-none">
                             <option value="Salario">Salario / Honorarios</option>
-                            <option value="Vivienda">51 - Vivienda / Arriendo</option>
-                            <option value="Servicios">51 - Servicios Públicos</option>
+                            <option value="Vivienda">51 - Vivienda</option>
+                            <option value="Servicios">51 - Servicios</option>
                             <option value="Comida">51 - Alimentación</option>
-                            <option value="Aseo">52 - Aseo y Mantenimiento</option>
-                            <option value="Ahorro">Ahorro / Fondo Emergencia</option>
+                            <option value="Aseo">52 - Aseo y Mant.</option>
+                            <option value="Ahorro">Ahorro / Fondo</option>
                             <option value="Otros">Otros</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Responsable / Dueño</label>
-                        <input type="text" id="ftx-owner" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500/50" placeholder="Ej: Daniel, Daya, Compartido">
+                        <label for="ftx-owner" class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Responsable</label>
+                        <input type="text" id="ftx-owner" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500/50" placeholder="Ej: General">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Concepto Detallado</label>
-                    <input type="text" id="ftx-desc" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500/50" placeholder="Ej: Arriendo mes de Octubre">
+                    <label for="ftx-desc" class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Concepto Detallado</label>
+                    <input type="text" id="ftx-desc" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500/50" placeholder="Ej: Pago de arriendo Octubre">
                 </div>
 
                 <div class="flex justify-end pt-4">
-                    <button type="submit" class="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold transition-all shadow-lg shadow-emerald-500/20">Registrar Transacción</button>
+                    <button type="submit" class="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold transition-all shadow-lg shadow-emerald-500/20">Guardar Transacción</button>
                 </div>
             </form>
 
-            <!-- CONTENEDOR 2: METAS / PROYECTOS (Oculto por defecto) -->
+            <!-- CONTENEDOR 2: METAS -->
             <form id="form-goal" class="modal-form space-y-5 hidden">
+                <input type="hidden" id="fg-id" value=""> <!-- Clave para el UPDATE -->
+                
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <label class="cursor-pointer">
                         <input type="radio" name="fg-type" value="Necesario" class="peer hidden" checked>
@@ -353,17 +347,17 @@
                     </label>
                 </div>
                 <div>
-                    <label class="block text-xs text-gray-400 mb-1 uppercase">Nombre del Proyecto / Meta</label>
-                    <input type="text" id="fg-title" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500/50">
+                    <label for="fg-title" class="block text-xs text-gray-400 mb-1 uppercase">Nombre de la Meta</label>
+                    <input type="text" id="fg-title" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500/50">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1 uppercase">Monto Objetivo</label>
-                        <input type="number" id="fg-target" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono focus:outline-none focus:border-blue-500/50">
+                        <label for="fg-target" class="block text-xs text-gray-400 mb-1 uppercase">Monto Objetivo</label>
+                        <input type="number" step="0.01" id="fg-target" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono focus:outline-none focus:border-blue-500/50">
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1 uppercase">Ahorro Actual</label>
-                        <input type="number" id="fg-current" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono focus:outline-none focus:border-blue-500/50">
+                        <label for="fg-current" class="block text-xs text-gray-400 mb-1 uppercase">Ahorro Actual</label>
+                        <input type="number" step="0.01" id="fg-current" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono focus:outline-none focus:border-blue-500/50">
                     </div>
                 </div>
                 <div class="flex justify-end pt-4">
@@ -371,8 +365,10 @@
                 </div>
             </form>
 
-            <!-- CONTENEDOR 3: HORARIO (Oculto por defecto) -->
+            <!-- CONTENEDOR 3: HORARIO -->
             <form id="form-schedule" class="modal-form space-y-5 hidden">
+                <input type="hidden" id="fs-id" value=""> <!-- Clave para el UPDATE -->
+                
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <label class="cursor-pointer">
                         <input type="radio" name="fs-type" value="Constante" class="peer hidden" checked>
@@ -384,32 +380,30 @@
                     </label>
                 </div>
                 <div>
-                    <label class="block text-xs text-gray-400 mb-1 uppercase">Actividad</label>
-                    <input type="text" id="fs-activity" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-orange-500/50" placeholder="Ej: Desarrollo Backend">
+                    <label for="fs-activity" class="block text-xs text-gray-400 mb-1 uppercase">Actividad</label>
+                    <input type="text" id="fs-activity" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-orange-500/50" placeholder="Ej: Desarrollo Backend">
                 </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1 uppercase">Horas por Semana</label>
-                    <input type="number" id="fs-hours" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono focus:outline-none focus:border-orange-500/50">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1 uppercase">Retorno Esperado</label>
-                    <input type="text" id="fs-return" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-orange-500/50" placeholder="Ej: Aumento de salario, portafolio">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="fs-hours" class="block text-xs text-gray-400 mb-1 uppercase">Horas x Semana</label>
+                        <input type="number" step="0.5" id="fs-hours" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-mono focus:outline-none focus:border-orange-500/50">
+                    </div>
+                    <div>
+                        <label for="fs-return" class="block text-xs text-gray-400 mb-1 uppercase">Retorno Esperado</label>
+                        <input type="text" id="fs-return" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-orange-500/50" placeholder="Ej: Salario, portafolio">
+                    </div>
                 </div>
                 <div class="flex justify-end pt-4">
-                    <button type="submit" class="px-6 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold transition-all shadow-lg shadow-orange-500/20">Agregar al Horario</button>
+                    <button type="submit" class="px-6 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold transition-all shadow-lg shadow-orange-500/20">Guardar Horario</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Contenedor Dinámico para Notificaciones Globales -->
-    <div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 pointer-events-none"></div>
+    <!-- Contenedor de Notificaciones -->
+    <div id="toast-container" aria-live="polite" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 pointer-events-none"></div>
 
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Aquí es donde conectarás el JS que te di en el mensaje anterior (finance_advanced.js), 
-         solo que ahora apuntará a estos IDs precisos y activará el modal correctamente -->
     <script type="module" src="../js/modules/finance_advanced.js"></script>
 </body>
 </html>
